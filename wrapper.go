@@ -1,6 +1,7 @@
 package errors
 
 import (
+	"log"
 	"strings"
 )
 
@@ -121,9 +122,21 @@ func Fail(text string, err error) {
 	Check(new(1, text, err))
 }
 
-// CheckOrFail do the same thiing as Fail, but only panic when err is not nil
+// CheckOrFail do the same thing as Fail, but only panic when err is not nil
 func CheckOrFail(text string, err error) {
 	if err != nil {
 		Check(new(1, text, err))
+	}
+}
+
+// Println do the same thing as `log.Println(err.String())` if err is Error, otherwise `log.Println(err.Error())`.
+func Println(log *log.Logger, err error) {
+	if err == nil {
+		return
+	}
+	if err2, ok := err.(Error); ok {
+		log.Println(err2.String())
+	} else {
+		log.Println(err.Error())
 	}
 }
