@@ -1,7 +1,6 @@
 package errors
 
 import (
-	"log"
 	"strings"
 )
 
@@ -129,16 +128,17 @@ func CheckOrFail(text string, err error) {
 	}
 }
 
-// Println do the same thing as `log.Println(err.String())` if err is Error, otherwise `log.Println(err.Error())`.
-func Println(log *log.Logger, err error) {
+// Format the error as string
+func Format(err error) string {
 	if err == nil {
-		return
+		return ""
 	}
+
 	if err2, ok := err.(Error); ok {
-		log.Println(err2.String())
-	} else {
-		log.Println(err.Error())
+		return err2.String()
 	}
+
+	return err.Error()
 }
 
 // RealCause return the first error (the leaf error) that chain these err
