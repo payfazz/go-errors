@@ -140,3 +140,20 @@ func Println(log *log.Logger, err error) {
 		log.Println(err.Error())
 	}
 }
+
+// RealCause return the first error (the leaf error) that chain these err
+func RealCause(err error) error {
+	last := err
+	for {
+		if err == nil {
+			return last
+		}
+
+		if err2, ok := err.(Error); ok {
+			last = err
+			err = err2.Cause()
+		} else {
+			return err
+		}
+	}
+}
