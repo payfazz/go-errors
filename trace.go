@@ -41,5 +41,6 @@ func generateStackTrace(skip, max int) []Location {
 			}
 		}
 	}
+
 	return ret
 }

@@ -20,6 +20,7 @@ type Error interface {
 	// internal is just empty function, the purpose is to make this interface cannot be implemented outside this package
 	internal()
 }
+
 type errorType struct {
 	text       string
 	cause      error
@@ -113,7 +114,9 @@ func NewWithCause(text string, err error) Error {
 
 // WrapAndCheck do the same thing as `Check(Wrap(err))`
 func WrapAndCheck(err error) {
-	Check(wrap(1, "", err))
+	if err != nil {
+		Check(wrap(1, "", err))
+	}
 }
 
 // Fail do the same thing as `Check(NewWithCause(text, err))`.

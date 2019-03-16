@@ -6,8 +6,9 @@ type checkT struct {
 }
 
 func (c checkT) Error() string {
-	return "FATAL: If you got this message, it means that you forget to defer \"Handle\", see: github.com/payfazz/go-errors\n" +
-		"    " + Format(c.err)
+	return "Unhandled error: If you got this message, it means that you forget to defer the error handler, " +
+		"see: github.com/payfazz/go-errors\n" +
+		Format(c.err)
 }
 
 // Handle the error, and store it to *errptr, this function must be called on deferred context, i.e. `defer Handle(&err)`.
