@@ -6,8 +6,6 @@ import (
 
 // Error represent the wrapped error
 type Error interface {
-	error
-
 	// Cause return the error that cause this error
 	Cause() error
 
@@ -16,6 +14,8 @@ type Error interface {
 
 	// String representation of Error
 	String() string
+
+	error
 
 	// internal is just empty function, the purpose is to make this interface cannot be implemented outside this package
 	internal()
@@ -76,59 +76,55 @@ func (e *errorType) String() string {
 
 func (e *errorType) internal() {}
 
-func new(skip int, text string, err error) Error {
+func new(skip int, text string, err error, deep int) Error {
 	ret := &errorType{
 		text:       text,
 		cause:      err,
-		stackTrace: generateStackTrace(skip+1, 20),
+		stackTrace: generateStackTrace(skip+1, deep),
 	}
 
 	return ret
 }
 
-func wrap(skip int, text string, err error) Error {
+func wrap(skip int, text string, err error, deep int) Error {
 	if err == nil {
 		return nil
 	}
 	if e, ok := err.(Error); ok {
 		return e
 	}
-	return new(skip+1, text, err)
+	return new(skip+1, text, err, deep)
 }
 
 // Wrap the err, if err is nil, then return nil
 func Wrap(err error) Error {
-	return wrap(1, "", err)
+	return wrap(1, "", err, defaultDeep)
+}
+
+// WrapWithDeep is same with Wrap, but with specified stack deep
+func WrapWithDeep(err error, deep int) Error {
+	return wrap(1, "", err, deep)
 }
 
 // New returns an Error that formats as the given text.
 func New(text string) Error {
-	return new(1, text, nil)
+	return new(1, text, nil, defaultDeep)
+}
+
+// NewWithDeep is same with New, but with specified stack deep
+func NewWithDeep(text string, deep int) Error {
+	return new(1, text, nil, deep)
 }
 
 // NewWithCause returns an Error that formats as the given text,
 // it also indicate that this Error is caused by err.
 func NewWithCause(text string, err error) Error {
-	return new(1, text, err)
+	return new(1, text, err, defaultDeep)
 }
 
-// WrapAndCheck do the same thing as `Check(Wrap(err))`
-func WrapAndCheck(err error) {
-	if err != nil {
-		Check(wrap(1, "", err))
-	}
-}
-
-// Fail do the same thing as `Check(NewWithCause(text, err))`.
-func Fail(text string, err error) {
-	Check(new(1, text, err))
-}
-
-// CheckOrFail do the same thing as Fail, but only panic when err is not nil
-func CheckOrFail(text string, err error) {
-	if err != nil {
-		Check(new(1, text, err))
-	}
+// NewWithCauseAndDeep is same with NewWithCause, but with specified stack deep
+func NewWithCauseAndDeep(text string, err error, deep int) Error {
+	return new(1, text, err, deep)
 }
 
 // Format the error as string
@@ -144,8 +140,15 @@ func Format(err error) string {
 	return err.Error()
 }
 
-// RealCause return the first error (the leaf error) that chain these err
+// RealCause is same with Cause.
+//
+// Deprecated: use Cause
 func RealCause(err error) error {
+	return Cause(err)
+}
+
+// Cause return the root cause of the error
+func Cause(err error) error {
 	last := err
 	for {
 		if err == nil {

@@ -5,6 +5,8 @@ import (
 	"runtime"
 )
 
+const defaultDeep = 20
+
 // Location of execution, it cointain filename and linenumber
 type Location struct {
 	File string
@@ -18,7 +20,7 @@ func (l Location) String() string {
 
 func generateStackTrace(skip, max int) []Location {
 	if max <= 0 {
-		return []Location{}
+		return nil
 	}
 	skip += 2
 	if skip < 0 {
@@ -32,6 +34,9 @@ func generateStackTrace(skip, max int) []Location {
 		frames := runtime.CallersFrames(ptrs)
 		for {
 			frame, more := frames.Next()
+			if frame.File == "" {
+				frame.File = "*unknown"
+			}
 			ret = append(ret, Location{
 				File: frame.File,
 				Line: frame.Line,
