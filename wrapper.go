@@ -54,7 +54,7 @@ func (e *errorType) String() string {
 		if first {
 			first = false
 		} else {
-			buff.WriteString("\nCaused by ")
+			buff.WriteString("Caused by ")
 		}
 		buff.WriteString("Error: ")
 		buff.WriteString(cause.Error())
