@@ -1,6 +1,7 @@
 package errors
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -109,6 +110,12 @@ func WrapWithDeep(err error, deep int) Error {
 // New returns an Error that formats as the given text.
 func New(text string) Error {
 	return new(1, text, nil, defaultDeep)
+}
+
+// Errorf formats according to a format specifier and returns the string
+// as a value that satisfies error.
+func Errorf(f string, v ...interface{}) error {
+	return new(1, fmt.Sprintf(f, v...), nil, defaultDeep)
 }
 
 // NewWithDeep is same with New, but with specified stack deep
