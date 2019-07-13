@@ -5,7 +5,8 @@ import (
 	"runtime"
 )
 
-const defaultDeep = 20
+// DefaultDeep is the default deep when generating stack trace
+var DefaultDeep = 20
 
 // Location of execution, it cointain filename and linenumber
 type Location struct {
