@@ -37,6 +37,12 @@ func HandleWith(f func(error)) {
 // to handle this error.
 func Check(err error) {
 	if err != nil {
-		panic(checkT{err})
+		Fail(err)
 	}
+}
+
+// Fail with the error, it assume that Handle is already deferred,
+// to handle this error.
+func Fail(err error) {
+	panic(checkT{err})
 }
