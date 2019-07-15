@@ -64,7 +64,7 @@ func (e *Error) String() string {
 	return buff.String()
 }
 
-func new(skip int, text string, err error, deep int) *Error {
+func new(skip int, text string, err error, deep int) error {
 	ret := &Error{
 		text:       text,
 		cause:      err,
@@ -74,7 +74,7 @@ func new(skip int, text string, err error, deep int) *Error {
 	return ret
 }
 
-func wrap(skip int, text string, err error, deep int) *Error {
+func wrap(skip int, text string, err error, deep int) error {
 	if err == nil {
 		return nil
 	}
@@ -85,46 +85,46 @@ func wrap(skip int, text string, err error, deep int) *Error {
 }
 
 // Wrap the err, if err is nil, then return nil
-func Wrap(err error) *Error {
+func Wrap(err error) error {
 	return wrap(1, "", err, DefaultDeep)
 }
 
 // WrapWithDeep is same with Wrap, but with specified stack deep
-func WrapWithDeep(err error, deep int) *Error {
+func WrapWithDeep(err error, deep int) error {
 	return wrap(1, "", err, deep)
 }
 
 // New return an Error with the given text.
-func New(text string) *Error {
+func New(text string) error {
 	return new(1, text, nil, DefaultDeep)
 }
 
 // Errorf return an Error with text according to a format specifier.
 //
 // Format as specified by fmt.Sprintf
-func Errorf(f string, v ...interface{}) *Error {
+func Errorf(f string, v ...interface{}) error {
 	return new(1, fmt.Sprintf(f, v...), nil, DefaultDeep)
 }
 
 // ErrorfWithDeep return an Error with text according to a format specifier.
 //
 // Format as specified by fmt.Sprintf
-func ErrorfWithDeep(deep int, f string, v ...interface{}) *Error {
+func ErrorfWithDeep(deep int, f string, v ...interface{}) error {
 	return new(1, fmt.Sprintf(f, v...), nil, deep)
 }
 
 // NewWithDeep is same with New, but with specified stack deep
-func NewWithDeep(text string, deep int) *Error {
+func NewWithDeep(text string, deep int) error {
 	return new(1, text, nil, deep)
 }
 
 // NewWithCause is same with New, but it also indicate that this Error is caused by err.
-func NewWithCause(text string, err error) *Error {
+func NewWithCause(text string, err error) error {
 	return new(1, text, err, DefaultDeep)
 }
 
 // NewWithCauseAndDeep is same with NewWithCause, but with specified stack deep
-func NewWithCauseAndDeep(text string, err error, deep int) *Error {
+func NewWithCauseAndDeep(text string, err error, deep int) error {
 	return new(1, text, err, deep)
 }
 
