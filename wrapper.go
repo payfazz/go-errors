@@ -75,9 +75,6 @@ func new(skip int, text string, err error, deep int) error {
 }
 
 func wrap(skip int, text string, err error, deep int) error {
-	if err == nil {
-		return nil
-	}
 	if e, ok := err.(*Error); ok {
 		return e
 	}
@@ -86,11 +83,17 @@ func wrap(skip int, text string, err error, deep int) error {
 
 // Wrap the err, if err is nil, then return nil
 func Wrap(err error) error {
+	if err == nil {
+		return nil
+	}
 	return wrap(1, "", err, DefaultDeep)
 }
 
 // WrapWithDeep is same with Wrap, but with specified stack deep
 func WrapWithDeep(err error, deep int) error {
+	if err == nil {
+		return nil
+	}
 	return wrap(1, "", err, deep)
 }
 
@@ -104,18 +107,6 @@ func New(text string) error {
 // Format as specified by fmt.Sprintf
 func Errorf(f string, v ...interface{}) error {
 	return new(1, fmt.Sprintf(f, v...), nil, DefaultDeep)
-}
-
-// ErrorfWithDeep return an Error with text according to a format specifier.
-//
-// Format as specified by fmt.Sprintf
-func ErrorfWithDeep(deep int, f string, v ...interface{}) error {
-	return new(1, fmt.Sprintf(f, v...), nil, deep)
-}
-
-// NewWithDeep is same with New, but with specified stack deep
-func NewWithDeep(text string, deep int) error {
-	return new(1, text, nil, deep)
 }
 
 // NewWithCause is same with New, but it also indicate that this Error is caused by err.

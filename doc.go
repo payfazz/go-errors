@@ -1,4 +1,7 @@
-// Package errors is a utility to handle common error pattern in golang.
+// Package errors .
+//
+// This package provide utility for wraping error to new error.
+// The wrapped error will have more information (like stack trace).
 //
 // default stack deep is 20.
 package errors
