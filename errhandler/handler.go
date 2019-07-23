@@ -69,7 +69,7 @@ func With(f func(error)) {
 // 		os.Exit(1)
 // 	}
 func Default(err error) {
-	fmt.Fprintln(os.Stderr, errors.Format(err))
+	fmt.Fprintln(os.Stderr, errors.Format(errors.Wrap(err)))
 	os.Exit(1)
 }
 
@@ -82,7 +82,7 @@ func Default(err error) {
 // 	}
 func Check(err error) {
 	if err != nil {
-		Fail(err)
+		panic(checkT{err})
 	}
 }
 
