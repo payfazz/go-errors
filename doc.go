@@ -5,3 +5,6 @@
 //
 // default stack deep is 20.
 package errors
+
+// DefaultDeep is the default deep when generating stack trace
+var DefaultDeep = 20

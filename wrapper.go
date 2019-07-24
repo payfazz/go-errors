@@ -3,13 +3,15 @@ package errors
 import (
 	"fmt"
 	"strings"
+
+	"github.com/payfazz/go-errors/trace"
 )
 
 // Error represent the wrapped error
 type Error struct {
 	text       string
 	cause      error
-	stackTrace []Location
+	stackTrace []trace.Location
 }
 
 var _ error = (*Error)(nil)
@@ -30,7 +32,7 @@ func (e *Error) Cause() error {
 }
 
 // StackTrace retrun the stack trace when this error created
-func (e *Error) StackTrace() []Location {
+func (e *Error) StackTrace() []trace.Location {
 	return e.stackTrace
 }
 
@@ -68,7 +70,7 @@ func new(skip int, text string, err error, deep int) error {
 	ret := &Error{
 		text:       text,
 		cause:      err,
-		stackTrace: generateStackTrace(skip+1, deep),
+		stackTrace: trace.Get(skip+1, deep),
 	}
 
 	return ret
