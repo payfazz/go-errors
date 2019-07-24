@@ -21,15 +21,18 @@ func Test1(t *testing.T) {
 		}
 	}()
 
+	var outErr error
+
 	defer errhandler.With(func(err error) {
 		if _, ok := err.(*myErr); ok {
-			fail = false
+			if err == outErr {
+				fail = false
+			}
 		}
 	})
 
-	var err error
-	err = &myErr{}
-	errhandler.Check(err)
+	outErr = &myErr{}
+	errhandler.Check(outErr)
 }
 
 func Test2(t *testing.T) {

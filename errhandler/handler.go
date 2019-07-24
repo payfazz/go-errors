@@ -64,14 +64,14 @@ func With(f func(error)) {
 
 // Default is the default error handler,
 func Default(err error) {
-	fmt.Fprint(os.Stderr, errors.Format(err))
+	fmt.Fprint(os.Stderr, errors.Format(errors.Wrap(err)))
 	os.Exit(1)
 }
 
 // Check the error, if not nil, then trigger Fail
 func Check(err error) {
 	if err != nil {
-		panic(checkT{errors_wrap(1, "", err, errors.DefaultDeep)})
+		panic(checkT{err})
 	}
 }
 
@@ -80,5 +80,5 @@ func Check(err error) {
 //
 // DO NOT call Fail with err == nil
 func Fail(err error) {
-	panic(checkT{errors_wrap(1, "", err, errors.DefaultDeep)})
+	panic(checkT{err})
 }
