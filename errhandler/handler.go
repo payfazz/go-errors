@@ -34,7 +34,6 @@ import (
 	"os"
 
 	"github.com/payfazz/go-errors"
-	"github.com/payfazz/go-errors/trace"
 )
 
 type checkT struct {
@@ -65,22 +64,14 @@ func With(f func(error)) {
 
 // Default is the default error handler,
 func Default(err error) {
-	if _, ok := err.(*errors.Error); ok {
-		fmt.Fprint(os.Stderr, errors.Format(err))
-	} else {
-		fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
-		ts := trace.Get(4, errors.DefaultDeep)
-		for _, t := range ts {
-			fmt.Fprintf(os.Stderr, "- %s\n", t.String())
-		}
-	}
+	fmt.Fprint(os.Stderr, errors.Format(err))
 	os.Exit(1)
 }
 
 // Check the error, if not nil, then trigger Fail
 func Check(err error) {
 	if err != nil {
-		panic(checkT{err})
+		panic(checkT{errors_wrap(1, "", err, errors.DefaultDeep)})
 	}
 }
 
@@ -89,5 +80,5 @@ func Check(err error) {
 //
 // DO NOT call Fail with err == nil
 func Fail(err error) {
-	panic(checkT{err})
+	panic(checkT{errors_wrap(1, "", err, errors.DefaultDeep)})
 }
