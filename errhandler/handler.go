@@ -42,7 +42,7 @@ type checkT struct {
 
 func (c checkT) Error() string {
 	return "Unhandled error: If you got this message, it means that you forget to defer the error handler, " +
-		"see: github.com/payfazz/go-errors/errhandler\n" +
+		"see: https://godoc.org/github.com/payfazz/go-errors/errhandler#With\n" +
 		errors.Format(c.err)
 }
 
