@@ -1,3 +1,3 @@
 module github.com/payfazz/go-errors
 
-go 1.12
+go 1.13

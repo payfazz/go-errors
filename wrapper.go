@@ -9,7 +9,7 @@ import (
 
 // Error represent the wrapped error
 type Error struct {
-	text       string
+	data       interface{}
 	cause      error
 	stackTrace []trace.Location
 }
@@ -17,13 +17,25 @@ type Error struct {
 var _ error = (*Error)(nil)
 
 func (e *Error) Error() string {
-	if e.text != "" {
-		return e.text
+	if e.data != nil {
+		switch v := e.data.(type) {
+		case string:
+			return v
+		case error:
+			return v.Error()
+		default:
+			return fmt.Sprint(v)
+		}
 	}
 	if e.cause != nil {
 		return e.cause.Error()
 	}
 	return ""
+}
+
+// Data return the error data
+func (e *Error) Data() interface{} {
+	return e.data
 }
 
 // Cause return the error that cause this error
@@ -66,9 +78,9 @@ func (e *Error) String() string {
 	return buff.String()
 }
 
-func new(skip int, text string, err error, deep int) error {
+func new(skip int, data interface{}, err error, deep int) error {
 	ret := &Error{
-		text:       text,
+		data:       data,
 		cause:      err,
 		stackTrace: trace.Get(skip+1, deep),
 	}
@@ -76,11 +88,11 @@ func new(skip int, text string, err error, deep int) error {
 	return ret
 }
 
-func wrap(skip int, text string, err error, deep int) error {
+func wrap(skip int, data interface{}, err error, deep int) error {
 	if e, ok := err.(*Error); ok {
 		return e
 	}
-	return new(skip+1, text, err, deep)
+	return new(skip+1, data, err, deep)
 }
 
 // Wrap the err, if err is nil, then return nil
@@ -88,7 +100,7 @@ func Wrap(err error) error {
 	if err == nil {
 		return nil
 	}
-	return wrap(1, "", err, DefaultDeep)
+	return wrap(1, nil, err, DefaultDeep)
 }
 
 // WrapWithDeep is same with Wrap, but with specified stack deep
@@ -96,12 +108,12 @@ func WrapWithDeep(err error, deep int) error {
 	if err == nil {
 		return nil
 	}
-	return wrap(1, "", err, deep)
+	return wrap(1, nil, err, deep)
 }
 
-// New return an Error with the given text.
-func New(text string) error {
-	return new(1, text, nil, DefaultDeep)
+// New return an Error with the given data.
+func New(data string) error {
+	return new(1, data, nil, DefaultDeep)
 }
 
 // Errorf return an Error with text according to a format specifier.
@@ -112,13 +124,13 @@ func Errorf(f string, v ...interface{}) error {
 }
 
 // NewWithCause is same with New, but it also indicate that this Error is caused by err.
-func NewWithCause(text string, err error) error {
-	return new(1, text, err, DefaultDeep)
+func NewWithCause(data interface{}, err error) error {
+	return new(1, data, err, DefaultDeep)
 }
 
 // NewWithCauseAndDeep is same with NewWithCause, but with specified stack deep
-func NewWithCauseAndDeep(text string, err error, deep int) error {
-	return new(1, text, err, deep)
+func NewWithCauseAndDeep(data interface{}, err error, deep int) error {
+	return new(1, data, err, deep)
 }
 
 // Format the error as string
@@ -147,6 +159,28 @@ func Cause(err error) error {
 			err = err2.Cause()
 		} else {
 			return err
+		}
+	}
+}
+
+// InErrorChain check if data in error chain
+func InErrorChain(err error, data interface{}) bool {
+	for {
+		if err == nil {
+			return false
+		}
+
+		if err == data {
+			return true
+		}
+
+		if err2, ok := err.(*Error); ok {
+			if err2.Data() == data {
+				return true
+			}
+			err = err2.Cause()
+		} else {
+			return false
 		}
 	}
 }

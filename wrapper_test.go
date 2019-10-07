@@ -63,3 +63,46 @@ func Test3(t *testing.T) {
 		t.Errorf("Wrapped error should not change error message")
 	}
 }
+
+func Test4(t *testing.T) {
+	err1 := fmt.Errorf("err1")
+	err2 := "err2"
+	err3 := fmt.Errorf("err3")
+	err4 := "err4"
+	err5 := fmt.Errorf("err5")
+
+	x := errors.Wrap(err1)
+	x = errors.NewWithCause(err2, x)
+	x = errors.NewWithCause(err3, x)
+	x = errors.NewWithCause(err4, x)
+	x = errors.NewWithCause(err5, x)
+
+	if errors.Cause(x) != err1 {
+		t.Errorf("invalid errors.Cause")
+	}
+
+	if !errors.InErrorChain(x, err5) {
+		t.Errorf("invalid errors.InErrorChain")
+	}
+
+	if !errors.InErrorChain(x, err4) {
+		t.Errorf("invalid errors.InErrorChain")
+	}
+
+	if !errors.InErrorChain(x, err3) {
+		t.Errorf("invalid errors.InErrorChain")
+	}
+
+	if !errors.InErrorChain(x, err2) {
+		t.Errorf("invalid errors.InErrorChain")
+	}
+
+	if !errors.InErrorChain(x, err1) {
+		t.Errorf("invalid errors.InErrorChain")
+	}
+
+	if errors.InErrorChain(x, "somestring") {
+		t.Errorf("invalid errors.InErrorChain")
+	}
+
+}
