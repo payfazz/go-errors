@@ -133,19 +133,6 @@ func NewWithCauseAndDeep(data interface{}, err error, deep int) error {
 	return new(1, data, err, deep)
 }
 
-// Format the error as string
-func Format(err error) string {
-	if err == nil {
-		return ""
-	}
-
-	if err2, ok := err.(*Error); ok {
-		return err2.String()
-	}
-
-	return err.Error()
-}
-
 // Cause return the root cause of the error
 func Cause(err error) error {
 	last := err
