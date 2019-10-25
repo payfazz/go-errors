@@ -1,6 +1,6 @@
 package errors
 
-// Printer .
+// Printer interface
 type Printer interface {
 	Print(...interface{})
 }

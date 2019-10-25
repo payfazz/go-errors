@@ -14,8 +14,12 @@ type Error struct {
 	stackTrace []trace.Location
 }
 
-var _ error = (*Error)(nil)
+// static type check
+var (
+	_ error = (*Error)(nil)
+)
 
+// Error from error interface
 func (e *Error) Error() string {
 	if e.data != nil {
 		switch v := e.data.(type) {

@@ -6,7 +6,7 @@ With is the function to handle the error, this function must be called on deferr
 for example:
 
 	func main() {
-		defer errhandler.With(nil) // or defer errhandler.With(errhandler.Default)
+		defer errhandler.With(nil) // same as defer errhandler.With(errhandler.Default)
 
 		something, err := getSomething()
 		errhandler.Check(errors.Wrap(err)) // using Wrap so we got the stack trace
@@ -25,7 +25,7 @@ please note that With adding some overhead, do not use it frequently, you should
 		return errors.Wrap(err)
 	}
 
-the only place to use this package is on main function or the start of go routine
+the only place to use this package is on main goroutine on main function
 */
 package errhandler
 
@@ -36,14 +36,12 @@ import (
 	"github.com/payfazz/go-errors"
 )
 
-type checkT struct {
-	err error
-}
+type checkT struct{ error }
 
 func (c checkT) Error() string {
 	return "Unhandled error: If you got this message, it means that you forget to defer the error handler, " +
 		"see: https://godoc.org/github.com/payfazz/go-errors/errhandler#With\n" +
-		errors.Format(c.err)
+		errors.Format(c.error)
 }
 
 // With will handle the error using f when Check or Fail is triggering the error
@@ -55,7 +53,7 @@ func With(f func(error)) {
 	}
 	if rec := recover(); rec != nil {
 		if c, ok := rec.(checkT); ok {
-			f(c.err)
+			f(c.error)
 		} else {
 			panic(rec)
 		}

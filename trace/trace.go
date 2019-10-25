@@ -1,4 +1,4 @@
-// Package trace provide utility to get stack trace
+// Package trace provide utility to get stack trace.
 package trace
 
 import (
