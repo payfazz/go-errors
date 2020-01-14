@@ -116,7 +116,7 @@ func WrapWithDeep(err error, deep int) error {
 }
 
 // New return an Error with the given data.
-func New(data string) error {
+func New(data interface{}) error {
 	return new(1, data, nil, DefaultDeep)
 }
 
