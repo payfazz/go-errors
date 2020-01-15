@@ -6,20 +6,20 @@ With is the function to handle the error, this function must be called on deferr
 for example:
 
 	func main() {
-		defer errhandler.With(nil) // same as defer errhandler.With(errhandler.Default)
+		defer errhandler.With(nil)
 
 		something, err := getSomething()
 		errhandler.Check(errors.Wrap(err)) // using Wrap so we got the stack trace
 
 		something2, err := getSomething2(something)
 		if err != nil {
-			errhandler.Fail(errors.NewWithCause("getSomething2 is failing", err))
+			errhandler.Check(errors.NewWithCause("getSomething2 is failing", err))
 		}
 	}
 
 NOTE
 
-please note that With adding some overhead, do not use it frequently, you should use
+please note that With adding some overhead, do not use it frequently, you should use golang idiom:
 
 	if err != nil {
 		return errors.Wrap(err)
@@ -44,15 +44,15 @@ func (c checkT) Error() string {
 		errors.Format(c.error)
 }
 
-// With will handle the error using f when Check or Fail is triggering the error
+// With will handle the error using f when Check is triggering the error
 //
-// if f is nil Default is used.
+// if f is nil, default handler is to print error to stderr and exit with error code 1.
 func With(f func(error)) {
-	if f == nil {
-		f = Default
-	}
 	if rec := recover(); rec != nil {
 		if c, ok := rec.(checkT); ok {
+			if f == nil {
+				f = defHandler
+			}
 			f(c.error)
 		} else {
 			panic(rec)
@@ -60,23 +60,14 @@ func With(f func(error)) {
 	}
 }
 
-// Default is the default error handler,
-func Default(err error) {
+func defHandler(err error) {
 	fmt.Fprint(os.Stderr, errors.Format(errors.Wrap(err)))
 	os.Exit(1)
 }
 
-// Check the error, if not nil, then trigger Fail
+// Check the error
 func Check(err error) {
 	if err != nil {
 		panic(checkT{err})
 	}
-}
-
-// Fail with the error, it assume that With is already deferred,
-// to handle this error.
-//
-// DO NOT call Fail with err == nil
-func Fail(err error) {
-	panic(checkT{err})
 }

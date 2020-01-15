@@ -12,16 +12,3 @@ func PrintTo(p Printer, err error) {
 	}
 	p.Print(Format(Wrap(err)))
 }
-
-// Format the error as string
-func Format(err error) string {
-	if err == nil {
-		return ""
-	}
-
-	if err2, ok := err.(*Error); ok {
-		return err2.String()
-	}
-
-	return err.Error()
-}
