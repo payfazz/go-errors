@@ -2,6 +2,7 @@ package errors
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/payfazz/go-errors/trace"
@@ -99,4 +100,25 @@ func RootCause(err error) error {
 		return true
 	})
 	return err
+}
+
+// InErrorChain will return true if the data is exists in error chain
+func InErrorChain(err error, data interface{}) bool {
+	if !reflect.TypeOf(data).Comparable() {
+		return false
+	}
+
+	if err == data {
+		return true
+	}
+
+	match := false
+	Walk(err, func(err *Error) bool {
+		if err == data || err.Data == data || err.Cause == data {
+			match = true
+			return false
+		}
+		return true
+	})
+	return match
 }

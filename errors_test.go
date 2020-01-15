@@ -73,3 +73,41 @@ func Test4(t *testing.T) {
 	// are not standarized, their purpose is only for human reading
 	errors.PrintTo(dummyPrinter{}, wrappedErr3)
 }
+
+func Test5(t *testing.T) {
+	err1 := fmt.Errorf("err1")
+	err2 := "err2"
+	err3 := fmt.Errorf("err3")
+	err4 := "err4"
+	err5 := fmt.Errorf("err5")
+
+	x := errors.Wrap(err1)
+	x = errors.NewWithCause(err2, x)
+	x = errors.NewWithCause(err3, x)
+	x = errors.NewWithCause(err4, x)
+	x = errors.NewWithCause(err5, x)
+
+	if errors.RootCause(x) != err1 {
+		t.Errorf("invalid errors.Cause")
+	}
+
+	if !errors.InErrorChain(x, err5) {
+		t.Errorf("invalid errors.InErrorChain")
+	}
+
+	if !errors.InErrorChain(x, err4) {
+		t.Errorf("invalid errors.InErrorChain")
+	}
+
+	if !errors.InErrorChain(x, err3) {
+		t.Errorf("invalid errors.InErrorChain")
+	}
+
+	if !errors.InErrorChain(x, err2) {
+		t.Errorf("invalid errors.InErrorChain")
+	}
+
+	if !errors.InErrorChain(x, err1) {
+		t.Errorf("invalid errors.InErrorChain")
+	}
+}
