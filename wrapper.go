@@ -9,6 +9,8 @@ import (
 )
 
 // Error represent the wrapped error
+//
+// all error returned from New*, Errorf, Wrap will have type *Error
 type Error struct {
 	// Data is arbitary data attached to this error
 	Data interface{}
