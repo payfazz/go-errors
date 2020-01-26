@@ -124,3 +124,6 @@ func InErrorChain(err error, data interface{}) bool {
 	})
 	return match
 }
+
+// Ignore the error.
+func Ignore(err error) {}

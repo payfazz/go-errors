@@ -71,3 +71,10 @@ func Check(err error) {
 		panic(checkT{err})
 	}
 }
+
+// CatchAndSet create function to catch error and set it to err
+func CatchAndSet(err *error) func(error) {
+	return func(e error) {
+		*err = e
+	}
+}

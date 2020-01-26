@@ -60,3 +60,18 @@ func Test2(t *testing.T) {
 	err = &myErr{}
 	panic(err)
 }
+
+func Test3(t *testing.T) {
+	var err error
+	testErr := &myErr{}
+
+	func() {
+		defer errhandler.With(errhandler.CatchAndSet(&err))
+		errhandler.Check(testErr)
+		t.Fatalf("This should be not called")
+	}()
+
+	if err != testErr {
+		t.Fatalf("error should be same")
+	}
+}
