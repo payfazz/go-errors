@@ -12,7 +12,7 @@ import (
 //
 // all error returned from New*, Errorf, Wrap will have type *Error
 type Error struct {
-	// Data is arbitary data attached to this error
+	// Data is arbitrary data attached to this error
 	Data interface{}
 
 	// Cause of this error
