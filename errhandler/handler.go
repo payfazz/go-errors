@@ -44,6 +44,19 @@ func (c checkT) Error() string {
 		errors.Format(c.error)
 }
 
+// UnwrapUnhandledError will unwrap the wrapper error used by errhandler.With to the original error
+//
+// This may be needed if you want to doing recover() manualy in the defer
+func UnwrapUnhandledError(err error) error {
+	if err == nil {
+		return nil
+	}
+	if err2, ok := err.(checkT); ok {
+		return err2.error
+	}
+	return err
+}
+
 // With will handle the error using f when Check is triggering the error
 //
 // if f is nil, default handler is to print error to stderr and exit with error code 1.
