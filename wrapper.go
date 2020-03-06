@@ -63,32 +63,14 @@ func Walk(err error, fn func(*Error) bool) bool {
 //
 // Use err.Error() if you want to get just the error string
 func Format(err error) string {
-	if err == nil {
-		return ""
-	}
+	return format(err, -1)
+}
 
-	var buff strings.Builder
-	var first = true
-	if Walk(err, func(wrappedErr *Error) bool {
-		if first {
-			first = false
-		} else {
-			buff.WriteString("Caused by ")
-		}
-		buff.WriteString("Error: ")
-		buff.WriteString(wrappedErr.Error())
-		buff.WriteString("\n")
-		for _, l := range wrappedErr.StackTrace {
-			buff.WriteString("- ")
-			buff.WriteString(l.String())
-			buff.WriteString("\n")
-		}
-		return true
-	}) {
-		return buff.String()
-	}
-
-	return "Error: " + err.Error()
+// FormatWithDeep representation of the Error, including stack trace with specified deep.
+//
+// Use err.Error() if you want to get just the error string
+func FormatWithDeep(err error, deep int) string {
+	return format(err, deep)
 }
 
 // RootCause return the root cause of the error
@@ -127,3 +109,36 @@ func InErrorChain(err error, data interface{}) bool {
 
 // Ignore the error.
 func Ignore(err error) {}
+
+func format(err error, deep int) string {
+	if err == nil {
+		return ""
+	}
+
+	var buff strings.Builder
+	var first = true
+	if Walk(err, func(wrappedErr *Error) bool {
+		if first {
+			first = false
+		} else {
+			buff.WriteString("Caused by ")
+		}
+		buff.WriteString("Error: ")
+		buff.WriteString(wrappedErr.Error())
+		buff.WriteString("\n")
+		for i, l := range wrappedErr.StackTrace {
+			if i == deep {
+				break
+			}
+
+			buff.WriteString("- ")
+			buff.WriteString(l.String())
+			buff.WriteString("\n")
+		}
+		return true
+	}) {
+		return buff.String()
+	}
+
+	return "Error: " + err.Error()
+}
