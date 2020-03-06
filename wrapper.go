@@ -63,7 +63,7 @@ func Walk(err error, fn func(*Error) bool) bool {
 //
 // Use err.Error() if you want to get just the error string
 func Format(err error) string {
-	return format(err, DefaultDeep)
+	return format(err, -1)
 }
 
 // FormatWithDeep representation of the Error, including stack trace with specified deep.
