@@ -118,23 +118,28 @@ func format(err error, deep int) string {
 	var buff strings.Builder
 	var first = true
 	if Walk(err, func(wrappedErr *Error) bool {
-		if first {
-			first = false
-		} else {
-			buff.WriteString("Caused by ")
-		}
-		buff.WriteString("Error: ")
-		buff.WriteString(wrappedErr.Error())
-		buff.WriteString("\n")
-		for i, l := range wrappedErr.StackTrace {
-			if i == deep {
-				break
+		printErr := func(err error) {
+			if first {
+				first = false
+			} else {
+				buff.WriteString("Caused by ")
 			}
-
+			buff.WriteString("Error: ")
+			buff.WriteString(err.Error())
+		}
+		printErr(wrappedErr)
+		buff.WriteString("\n")
+		for _, l := range wrappedErr.StackTrace {
 			buff.WriteString("- ")
 			buff.WriteString(l.String())
 			buff.WriteString("\n")
 		}
+		if wrappedErr.Cause != nil {
+			if _, ok := wrappedErr.Cause.(*Error); !ok {
+				printErr(wrappedErr.Cause)
+			}
+		}
+
 		return true
 	}) {
 		return buff.String()
