@@ -61,21 +61,20 @@ func UnwrapUnhandledError(err error) error {
 //
 // if f is nil, default handler is to print error to stderr and exit with error code 1.
 func With(f func(error)) {
+	if f == nil {
+		f = func(err error) {
+			fmt.Fprint(os.Stderr, errors.Format(errors.Wrap(err)))
+			os.Exit(1)
+		}
+	}
+
 	if rec := recover(); rec != nil {
 		if c, ok := rec.(checkT); ok {
-			if f == nil {
-				f = defHandler
-			}
 			f(c.error)
 		} else {
 			panic(rec)
 		}
 	}
-}
-
-func defHandler(err error) {
-	fmt.Fprint(os.Stderr, errors.Format(errors.Wrap(err)))
-	os.Exit(1)
 }
 
 // Check the error

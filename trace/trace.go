@@ -13,6 +13,11 @@ type Location struct {
 	Function string
 }
 
+// static type check
+var (
+	_ fmt.Stringer = (*Location)(nil)
+)
+
 // String representation of Location
 func (l Location) String() string {
 	if l.Function == "" {

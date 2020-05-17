@@ -129,7 +129,10 @@ func format(err error, deep int) string {
 		}
 		printErr(wrappedErr)
 		buff.WriteString("\n")
-		for _, l := range wrappedErr.StackTrace {
+		for i, l := range wrappedErr.StackTrace {
+			if i == deep {
+				break
+			}
 			buff.WriteString("- ")
 			buff.WriteString(l.String())
 			buff.WriteString("\n")

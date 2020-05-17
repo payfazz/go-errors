@@ -10,5 +10,8 @@ func PrintTo(p Printer, err error) {
 	if err == nil {
 		return
 	}
+	if p == nil {
+		return
+	}
 	p.Print(Format(Wrap(err)))
 }
