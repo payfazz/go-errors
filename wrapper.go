@@ -38,7 +38,8 @@ func (e *Error) Error() string {
 	return ""
 }
 
-// Walk is helper for walk the error chains,
+// Walk is helper for walk the error chains.
+//
 // Walk will return true if fn is called at least once
 //
 // Walk will walk the chains as long fn return true
@@ -137,6 +138,8 @@ func format(err error, deep int) string {
 			buff.WriteString(l.String())
 			buff.WriteString("\n")
 		}
+
+		// Walk will this last one, so we need to do it here
 		if wrappedErr.Cause != nil {
 			if _, ok := wrappedErr.Cause.(*Error); !ok {
 				printErr(wrappedErr.Cause)

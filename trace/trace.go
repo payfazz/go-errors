@@ -13,11 +13,6 @@ type Location struct {
 	Function string
 }
 
-// static type check
-var (
-	_ fmt.Stringer = (*Location)(nil)
-)
-
 // String representation of Location
 func (l Location) String() string {
 	if l.Function == "" {
@@ -30,7 +25,7 @@ func (l Location) String() string {
 // Get return list of location of stack trace for calling function.
 //
 // max tell Get how deep the stack trace is.
-// skip tell Get to skip some trace, 0 where Get is called.
+// skip tell Get to skip some trace, 0 is where Get is called.
 func Get(skip, max int) []Location {
 	if max <= 0 {
 		return nil

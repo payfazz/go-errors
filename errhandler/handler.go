@@ -1,9 +1,14 @@
 /*
 Package errhandler provide utility to adding error handling.
 
-With is the function to handle the error, this function must be called on deferred context.
+With is the function to handle the error, this function must be called with defer.
 
 for example:
+
+	import (
+		"github.com/payfazz/go-errors"
+		"github.com/payfazz/go-errors/errhandler"
+	)
 
 	func main() {
 		defer errhandler.With(nil)
@@ -25,7 +30,6 @@ please note that With adding some overhead, do not use it frequently, you should
 		return errors.Wrap(err)
 	}
 
-the only place to use this package is on main goroutine on main function
 */
 package errhandler
 
