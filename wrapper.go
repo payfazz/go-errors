@@ -139,7 +139,7 @@ func format(err error, deep int) string {
 			buff.WriteString("\n")
 		}
 
-		// Walk will this last one, so we need to do it here
+		// Walk will skip this last one, so we need to do it here
 		if wrappedErr.Cause != nil {
 			if _, ok := wrappedErr.Cause.(*Error); !ok {
 				printErr(wrappedErr.Cause)
