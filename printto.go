@@ -1,12 +1,7 @@
 package errors
 
-// Printer interface
-type Printer interface {
-	Print(...interface{})
-}
-
-// PrintTo print formated error to printer
-func PrintTo(p Printer, err error) {
+// PrintTo print formated error p
+func PrintTo(p interface{ Print(...interface{}) }, err error) {
 	if err == nil {
 		return
 	}

@@ -56,6 +56,11 @@ func NewWithCause(data interface{}, err error) error {
 	return new(1, data, err, DefaultDeep)
 }
 
+// ErrorWithCauseF is same with like ErrorF, but you can spesify the error cause
+func ErrorWithCauseF(cause error, f string, v ...interface{}) error {
+	return new(1, fmt.Sprintf(f, v...), cause, DefaultDeep)
+}
+
 // NewWithCauseAndDeep is same with NewWithCause, but with specified stack deep
 func NewWithCauseAndDeep(data interface{}, err error, deep int) error {
 	return new(1, data, err, deep)
