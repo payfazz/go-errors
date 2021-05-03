@@ -8,18 +8,33 @@ import (
 
 // Location of execution
 type Location struct {
-	File     string
-	Line     int
-	Function string
+	file     string
+	line     int
+	function string
 }
 
 // String representation of Location
 func (l Location) String() string {
-	if l.Function == "" {
-		return fmt.Sprintf("%s:%d", l.File, l.Line)
+	if l.function == "" {
+		return fmt.Sprintf("%s:%d", l.file, l.line)
 	}
 
-	return fmt.Sprintf("%s:%d (%s)", l.File, l.Line, l.Function)
+	return fmt.Sprintf("%s:%d (%s)", l.file, l.line, l.function)
+}
+
+// the File that this Location point to
+func (l Location) File() string {
+	return l.file
+}
+
+// the Line that this Location point to
+func (l Location) Line() int {
+	return l.line
+}
+
+// the Function that this location point to
+func (l Location) Function() string {
+	return l.function
 }
 
 // Get return list of location of stack trace for calling function.
@@ -50,9 +65,9 @@ func Get(skip, max int) []Location {
 				continue
 			}
 			ret = append(ret, Location{
-				Function: frame.Function,
-				File:     frame.File,
-				Line:     frame.Line,
+				function: frame.Function,
+				file:     frame.File,
+				line:     frame.Line,
 			})
 			if !more {
 				break
