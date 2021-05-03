@@ -3,7 +3,7 @@ package errors
 import (
 	"fmt"
 
-	"github.com/payfazz/go-errors/trace"
+	"github.com/payfazz/go-errors/v2/trace"
 )
 
 func new(skip int, data interface{}, err error, deep int) error {

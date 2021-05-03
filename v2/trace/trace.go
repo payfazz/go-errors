@@ -40,6 +40,8 @@ func Get(skip, max int) []Location {
 
 	ptrs := make([]uintptr, max)
 	ptrsNum := runtime.Callers(skip, ptrs)
+	ptrs = ptrs[:ptrsNum]
+
 	if ptrsNum > 0 {
 		frames := runtime.CallersFrames(ptrs)
 		for {

@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/payfazz/go-errors/trace"
+	"github.com/payfazz/go-errors/v2/trace"
 )
 
 // Error represent the wrapped error
