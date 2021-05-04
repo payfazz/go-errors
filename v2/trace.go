@@ -28,6 +28,14 @@ func (e *tracedErr) Unwrap() error {
 	return Unwrap(e.error)
 }
 
+func (e *tracedErr) As(target interface{}) bool {
+	return As(e.error, target)
+}
+
+func (e *tracedErr) Is(target error) bool {
+	return Is(e.error, target)
+}
+
 func (e *tracedErr) StackTrace() []trace.Location {
 	return e.trace
 }

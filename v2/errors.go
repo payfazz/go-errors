@@ -15,6 +15,7 @@ import (
 
 const defaultDeep = 20
 
+// StackTracer indicate that the error have stack trace
 type StackTracer interface {
 	StackTrace() []trace.Location
 }
@@ -34,7 +35,7 @@ func Unwrap(err error) error {
 	return stderrors.Unwrap(err)
 }
 
-// Ignore the err, useful for static code analysis
+// Ignore the err
 func Ignore(err error) {}
 
 // see https://golang.org/pkg/errors/#New
@@ -60,15 +61,13 @@ func NewWithCauseAndDeep(deep int, text string, cause error) error {
 // see https://golang.org/pkg/fmt/#Errorf
 func Errorf(format string, a ...interface{}) error {
 	err := fmt.Errorf(format, a...)
-	cause := Unwrap(err)
-	return newTracedErr(1, defaultDeep, &textErr{text: err.Error(), cause: cause})
+	return newTracedErr(1, defaultDeep, &textErr{text: err.Error(), cause: Unwrap(err)})
 }
 
 // like Errorf, but you can specify the stack trace deep
 func ErrorfWithDeep(deep int, format string, a ...interface{}) error {
 	err := fmt.Errorf(format, a...)
-	cause := Unwrap(err)
-	return newTracedErr(1, deep, &textErr{text: err.Error(), cause: cause})
+	return newTracedErr(1, deep, &textErr{text: err.Error(), cause: Unwrap(err)})
 }
 
 // Wrap the err if the err doens't have stack trace
