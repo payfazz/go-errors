@@ -4,6 +4,7 @@ package trace
 import (
 	"fmt"
 	"runtime"
+	"strings"
 )
 
 // Location of execution
@@ -45,7 +46,7 @@ func Get(skip, deep int) (locations []Location) {
 	}
 	skip += 2
 
-	pc := make([]uintptr, deep)
+	pc := make([]uintptr, deep+10)
 	pc = pc[:runtime.Callers(skip, pc)]
 	if len(pc) == 0 {
 		return nil
@@ -56,14 +57,18 @@ func Get(skip, deep int) (locations []Location) {
 	frames := runtime.CallersFrames(pc)
 	for {
 		frame, more := frames.Next()
-		if frame.Line == 0 && frame.File == "" {
-			continue
+		if frame.Line != 0 && frame.File != "" &&
+			!strings.HasPrefix(frame.Function, "runtime.") &&
+			!strings.HasPrefix(frame.Function, "github.com/payfazz/go-errors/v2.") {
+			locations = append(locations, Location{
+				func_: frame.Function,
+				file:  frame.File,
+				line:  frame.Line,
+			})
 		}
-		locations = append(locations, Location{
-			func_: frame.Function,
-			file:  frame.File,
-			line:  frame.Line,
-		})
+		if len(locations) == deep {
+			break
+		}
 		if !more {
 			break
 		}

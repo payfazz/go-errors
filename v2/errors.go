@@ -8,17 +8,9 @@ package errors
 
 import (
 	stderrors "errors"
-	"fmt"
 
 	"github.com/payfazz/go-errors/v2/trace"
 )
-
-const defaultDeep = 20
-
-// StackTracer indicate that the error have stack trace
-type StackTracer interface {
-	StackTrace() []trace.Location
-}
 
 // see https://golang.org/pkg/errors/#As
 func As(err error, target interface{}) bool {
@@ -35,55 +27,18 @@ func Unwrap(err error) error {
 	return stderrors.Unwrap(err)
 }
 
-// Ignore the err
-func Ignore(err error) {}
-
 // see https://golang.org/pkg/errors/#New
 func New(text string) error {
-	return newTracedErr(1, defaultDeep, &textErr{text: text})
-}
-
-// like New, but you can specify the stack trace deep
-func NewWithDeep(deep int, text string) error {
-	return newTracedErr(1, deep, &textErr{text: text})
+	return &tracedErr{
+		error: &anyErr{data: text},
+		trace: trace.Get(1, defaultDeep),
+	}
 }
 
 // like New, but you can specify the cause error
 func NewWithCause(text string, cause error) error {
-	return newTracedErr(1, defaultDeep, &textErr{text: text, cause: cause})
-}
-
-// like NewWithCause, but you can specify the stack trace deep
-func NewWithCauseAndDeep(deep int, text string, cause error) error {
-	return newTracedErr(1, deep, &textErr{text: text, cause: cause})
-}
-
-// see https://golang.org/pkg/fmt/#Errorf
-func Errorf(format string, a ...interface{}) error {
-	err := fmt.Errorf(format, a...)
-	return newTracedErr(1, defaultDeep, &textErr{text: err.Error(), cause: Unwrap(err)})
-}
-
-// like Errorf, but you can specify the stack trace deep
-func ErrorfWithDeep(deep int, format string, a ...interface{}) error {
-	err := fmt.Errorf(format, a...)
-	return newTracedErr(1, deep, &textErr{text: err.Error(), cause: Unwrap(err)})
-}
-
-// Wrap the err if the err doens't have stack trace
-func Wrap(err error) error {
-	return newTracedErr(1, defaultDeep, err)
-}
-
-// like Wrap, but you can specify the stack trace deep
-func WrapWithDeep(deep int, err error) error {
-	return newTracedErr(1, deep, err)
-}
-
-// Get stack trace of where the error is generated, return nil if none
-func StackTrace(err error) []trace.Location {
-	if e, ok := err.(StackTracer); ok {
-		return e.StackTrace()
+	return &tracedErr{
+		error: &anyErr{data: text, cause: cause},
+		trace: trace.Get(1, defaultDeep),
 	}
-	return nil
 }

@@ -6,22 +6,9 @@ import (
 
 type tracedErr struct {
 	error
-	trace []trace.Location
-}
 
-func newTracedErr(skip int, deep int, err error) error {
-	if err == nil {
-		return nil
-	}
-
-	if _, ok := err.(StackTracer); ok {
-		return err
-	}
-
-	return &tracedErr{
-		error: err,
-		trace: trace.Get(skip+1, deep),
-	}
+	trace  []trace.Location
+	parent []trace.Location
 }
 
 func (e *tracedErr) Unwrap() error {
@@ -36,6 +23,28 @@ func (e *tracedErr) Is(target error) bool {
 	return Is(e.error, target)
 }
 
-func (e *tracedErr) StackTrace() []trace.Location {
-	return e.trace
+const defaultDeep = 50
+
+// Wrap the err if the err doens't have stack trace
+func Wrap(err error) error {
+	if err == nil {
+		return nil
+	}
+
+	if _, ok := err.(*tracedErr); ok {
+		return err
+	}
+
+	return &tracedErr{
+		error: err,
+		trace: trace.Get(1, defaultDeep),
+	}
+}
+
+// Get stack trace of where the error is generated or wrapped, return nil if none
+func StackTrace(err error) []trace.Location {
+	if e, ok := err.(*tracedErr); ok {
+		return e.trace
+	}
+	return nil
 }

@@ -8,17 +8,6 @@ import (
 //
 // Use err.Error() if you want to get just the error string
 func Format(err error) string {
-	return format(err, defaultDeep)
-}
-
-// FormatWithDeep representation of the Error, including stack trace with specified deep.
-//
-// Use err.Error() if you want to get just the error string
-func FormatWithDeep(err error, deep int) string {
-	return format(err, deep)
-}
-
-func format(err error, deep int) string {
 	var sb strings.Builder
 
 	add := func(err error) {
@@ -29,14 +18,20 @@ func format(err error, deep int) string {
 		sb.WriteString("Error: ")
 		sb.WriteString(err.Error())
 		sb.WriteByte('\n')
-
-		for i, l := range StackTrace(err) {
-			if i == deep {
-				break
-			}
+		for _, l := range StackTrace(err) {
 			sb.WriteString("- ")
 			sb.WriteString(l.String())
 			sb.WriteByte('\n')
+		}
+
+		parentTrace := ParentStackTrace(err)
+		if len(parentTrace) > 0 {
+			sb.WriteString("From goroutine created by:\n")
+			for _, l := range parentTrace {
+				sb.WriteString("- ")
+				sb.WriteString(l.String())
+				sb.WriteByte('\n')
+			}
 		}
 	}
 
