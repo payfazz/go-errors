@@ -12,49 +12,27 @@ func ParentStackTrace(err error) []trace.Location {
 	return nil
 }
 
-// Spawn new go routine
+// Spawn go routine
 //
-// run f, if f panic or returning non-nil error, it will be passed to the error channel
+// run f, when f panic or returned, it will be reported to function report
 //
-// the error passed to the error chanel will return non-nil when passed to ParentStackTrace
-func Spawn(f func() error) <-chan error {
-	errCh := make(chan error, 1)
+// the non-nil reported error will return non-nil when passed to ParentStackTrace
+func Go(report func(error), f func() error) {
 	parent := trace.Get(1, defaultDeep)
-	go func() {
-		passErr := func(err error) {
-			if err == nil {
-				return
-			}
 
-			if t, ok := err.(*tracedErr); ok {
-				t.parent = parent
-				errCh <- t
-				return
-			}
-
-			errCh <- &tracedErr{
-				error:  err,
-				parent: parent,
-			}
+	doReport := func(err error) {
+		if err == nil {
+			report(nil)
 		}
 
-		defer func() {
-			if rec := recover(); rec != nil {
-				var err error
-				if recAsErr, ok := rec.(*tracedErr); ok {
-					err = recAsErr
-				} else {
-					err = &tracedErr{
-						error: &anyErr{data: rec},
-						trace: trace.Get(1, defaultDeep),
-					}
-				}
-				passErr(err)
-			}
-			close(errCh)
-		}()
+		if t, ok := err.(*tracedErr); ok {
+			t.parent = parent
+		} else {
+			err = &tracedErr{error: err, parent: parent}
+		}
 
-		passErr(f())
-	}()
-	return errCh
+		report(err)
+	}
+
+	go func() { doReport(Catch(f)) }()
 }
