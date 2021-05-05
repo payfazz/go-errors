@@ -28,7 +28,9 @@ func (e *tracedErr) Is(target error) bool {
 
 const defaultDeep = 50
 
-// Trace the err if the err doens't have stack trace
+// Trace will return new error that have stack trace
+//
+// will return same err if err already have stack trace
 func Trace(err error) error {
 	if err == nil {
 		return nil
@@ -44,7 +46,9 @@ func Trace(err error) error {
 	}
 }
 
-// Get stack trace of where the error is generated or first Trace called, return nil if none
+// Get stack trace of err
+//
+// return nil if err doesn't have stack trace
 func StackTrace(err error) []trace.Location {
 	if e, ok := err.(*tracedErr); ok {
 		return e.trace

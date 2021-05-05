@@ -4,7 +4,9 @@ import (
 	"github.com/payfazz/go-errors/v2/trace"
 )
 
-// Get stack trace of parent go routine of the error, return nil if none
+// Get paren goroutine stack trace of err
+//
+// return nil if err doesn't have stack trace
 func ParentStackTrace(err error) []trace.Location {
 	if e, ok := err.(*tracedErr); ok {
 		return e.parent
@@ -14,7 +16,7 @@ func ParentStackTrace(err error) []trace.Location {
 
 // Spawn go routine
 //
-// run f, when f panic or returned, it will be reported to function report
+// run f, if f panic or returned some error, that error will be passed to report function
 //
 // the non-nil reported error will return non-nil when passed to ParentStackTrace
 func Go(report func(error), f func() error) {

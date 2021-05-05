@@ -6,35 +6,43 @@ import (
 	"testing"
 
 	"github.com/payfazz/go-errors/v2"
+	"github.com/payfazz/go-errors/v2/trace"
 )
 
 func TestTraceNil(t *testing.T) {
 	err := errors.Trace(nil)
 	if err != nil {
-		t.Errorf("Trace(nil) should be nil")
-	}
-}
-
-func TestIndempotentTrace(t *testing.T) {
-	err1 := errors.New("testerr")
-	err2 := errors.Trace(err1)
-	err3 := errors.Trace(err2)
-	err4 := errors.Trace(err3)
-
-	if err2 != err3 || err3 != err4 {
-		t.Errorf("traced error must be indempotent")
+		t.Errorf("errors.Trace(nil) should be nil")
 	}
 }
 
 func TestTraceMessage(t *testing.T) {
-	err1 := errors.Errorf("testerr")
+	err1 := errors.New("testerr")
 	err2 := errors.Trace(err1)
 	if err2.Error() != "testerr" {
-		t.Errorf("Traced error should not change error message")
+		t.Errorf("errors.Trace should not change error message")
 	}
 }
 
-func TestNew(t *testing.T) {
+func TestTraceMessageErrorf(t *testing.T) {
+	err1 := fmt.Errorf("testerr")
+	err2 := errors.Errorf("testwrapper: %w", err1)
+	if !errors.Is(errors.Unwrap(err2), err1) {
+		t.Errorf("errors.Errorf should support %%w")
+	}
+}
+
+func TestIndempotentTrace(t *testing.T) {
+	err1 := errors.Errorf("testerr")
+	err2 := errors.Trace(err1)
+	err3 := errors.Trace(err2)
+
+	if err1 != err2 || err2 != err3 {
+		t.Errorf("traced error must be indempotent")
+	}
+}
+
+func TestNewWithCause(t *testing.T) {
 	err0 := fmt.Errorf("err1")
 	err1 := errors.Trace(err0)
 	err2 := errors.NewWithCause("err2", err1)
@@ -57,211 +65,179 @@ type myErr struct{ msg string }
 
 func (e *myErr) Error() string { return e.msg }
 
-func funcAAAAAA(notpanic bool) error {
-	err := errors.Trace(&myErr{msg: "test err"})
-	if notpanic {
-		return err
-	}
-	panic(err)
-}
-
-var zero = 0
-
-func funcBBBBBB(notpanic bool, f func() error) error {
-	errCh := make(chan error)
-	errors.Go(
-		func(err error) {
-			errCh <- err
-			close(errCh)
-		},
-		func() error {
-			if notpanic {
-				return f()
-			}
-
-			// this will panic
-			return fmt.Errorf("%d", 10/zero)
-		},
-	)
-	return <-errCh
-}
-
-func TestFormat(t *testing.T) {
-	funcName := "funcAAAAAA"
-	err1 := funcBBBBBB(true, func() error { return funcAAAAAA(true) })
-
-	haveTrace := false
-	for _, t := range errors.StackTrace(err1) {
-		if strings.Contains(t.Func(), funcName) {
-			haveTrace = true
-			break
-		}
-	}
-
-	if !haveTrace {
-		t.Errorf("invalid errors.StackTrace")
-	}
-
-	e2 := errors.NewWithCause("test cause", err1)
-
-	if !strings.Contains(errors.Format(e2), funcName) {
-		t.Errorf("invalid errors.Format")
-	}
-
-	if strings.Contains(errors.FormatWithDeep(e2, 0), funcName) {
-		t.Errorf("invalid errors.FormatWithDeep")
-	}
-}
-
 func TestErrorsAs(t *testing.T) {
 	var target *myErr
 
-	e := funcAAAAAA(true)
+	err := errors.Trace(&myErr{msg: "testerr"})
 
-	if !errors.As(e, &target) {
+	if !errors.As(err, &target) {
 		t.Errorf("invalid errors.As")
 	}
 
-	if e.Error() != target.msg {
+	if err.Error() != target.msg {
 		t.Errorf("invalid errors.As")
 	}
 }
 
-func TestGo(t *testing.T) {
-	err := funcBBBBBB(true, func() error { return fmt.Errorf("test err") })
+func funcAA(f func()) { f() }
 
-	goodParent := false
-	for _, l := range errors.ParentStackTrace(err) {
-		if strings.Contains(l.Func(), "funcBBBBBB") {
-			goodParent = true
-			break
+func funcBB(f func()) { f() }
+
+func haveTrace(ls []trace.Location, what string) bool {
+	for _, l := range ls {
+		if strings.Contains(l.Func(), what) {
+			return true
 		}
 	}
-
-	if !goodParent {
-		t.Errorf("invalid errors.ParentStackTrace")
-	}
+	return false
 }
-func TestGoTraced(t *testing.T) {
-	err := funcBBBBBB(true, func() error { return funcAAAAAA(true) })
 
-	goodTrace := false
-	for _, l := range errors.StackTrace(err) {
-		if strings.Contains(l.Func(), "funcAAAAAA") {
-			goodTrace = true
-			break
-		}
+func TestStackTrace(t *testing.T) {
+	var err error
+	funcAA(func() {
+		funcBB(func() {
+			err = errors.New("testerr")
+		})
+	})
+
+	trace := errors.StackTrace(err)
+
+	if !haveTrace(trace, "funcAA") {
+		t.Errorf("errors.StackTrace should contains funcAA")
 	}
 
-	if !goodTrace {
-		t.Errorf("invalid errors.StackTrace")
-	}
-
-	goodParent := false
-	for _, l := range errors.ParentStackTrace(err) {
-		if strings.Contains(l.Func(), "funcBBBBBB") {
-			goodParent = true
-			break
-		}
-	}
-
-	if !goodParent {
-		t.Errorf("invalid errors.ParentStackTrace")
+	if !haveTrace(trace, "funcBB") {
+		t.Errorf("errors.StackTrace should contains funcBB")
 	}
 }
 
-func TestGoNil(t *testing.T) {
-	err := funcBBBBBB(true, func() error { return nil })
-	if err != nil {
-		t.Errorf("invalid errors.Go")
+func TestNonTraced(t *testing.T) {
+	if errors.StackTrace(fmt.Errorf("testerror")) != nil {
+		t.Errorf("errors.StackTrace on non traced error should return nil")
+	}
+	if errors.ParentStackTrace(fmt.Errorf("testerror")) != nil {
+		t.Errorf("errors.ParentStackTrace on non traced error should return nil")
 	}
 }
 
-func TestGoPanic(t *testing.T) {
-	err := funcBBBBBB(false, nil)
+func TestCatch(t *testing.T) {
+	err1 := errors.Catch(func() error { return nil })
+	if err1 != nil {
+		t.Errorf("errors.Catch should return nil when f returning nil")
+	}
 
-	goodTrace := false
-	for _, l := range errors.StackTrace(err) {
-		if strings.Contains(l.Func(), "funcBBBBBB") {
-			goodTrace = true
-			break
+	check := func(f func() error) {
+		err2 := errors.Catch(func() error {
+			var err error
+			funcAA(func() {
+				err = f()
+			})
+			return err
+		})
+		if err2 == nil {
+			t.Errorf("errors.Catch should return non-nil when f returning non-nil")
+		}
+		if !haveTrace(errors.StackTrace(err2), "funcAA") {
+			t.Errorf("errors.Catch trace should contains funcAA")
 		}
 	}
 
-	if !goodTrace {
-		t.Errorf("invalid errors.StackTrace")
-	}
+	check(func() error {
+		return errors.New("testerr")
+	})
 
-	goodParent := false
-	for _, l := range errors.ParentStackTrace(err) {
-		if strings.Contains(l.Func(), "funcBBBBBB") {
-			goodParent = true
-			break
-		}
-	}
+	check(func() error {
+		panic(errors.New("testerr"))
+	})
 
-	if !goodParent {
-		t.Errorf("invalid errors.ParentStackTrace")
-	}
-}
+	check(func() error {
+		panic(fmt.Errorf("testerr"))
+	})
 
-func TestGoTracedPanic(t *testing.T) {
-	err := funcBBBBBB(true, func() error { return funcAAAAAA(false) })
-
-	goodTrace := false
-	for _, l := range errors.StackTrace(err) {
-		if strings.Contains(l.Func(), "funcAAAAAA") {
-			goodTrace = true
-			break
-		}
-	}
-
-	if !goodTrace {
-		t.Errorf("invalid errors.StackTrace")
-	}
-
-	goodParent := false
-	for _, l := range errors.ParentStackTrace(err) {
-		if strings.Contains(l.Func(), "funcBBBBBB") {
-			goodParent = true
-			break
-		}
-	}
-
-	if !goodParent {
-		t.Errorf("invalid errors.ParentStackTrace")
-	}
-}
-
-func TestNilTrace(t *testing.T) {
-	err := fmt.Errorf("test err")
-	if len(errors.StackTrace(err)) != 0 {
-		t.Errorf("invalid errors.StackTrace")
-	}
-	if len(errors.ParentStackTrace(err)) != 0 {
-		t.Errorf("invalid errors.ParentStackTrace")
-	}
-}
-
-func funcCCCC() {
-	panic("coba string")
-}
-
-func TestCatchNonError(t *testing.T) {
-	err := errors.Catch(func() error {
-		funcCCCC()
+	check(func() error {
+		var something interface{ something() }
+		// this trigger nil pointer exception
+		something.something()
 		return nil
 	})
 
-	goodTrace := false
-	for _, l := range errors.StackTrace(err) {
-		if strings.Contains(l.Func(), "funcCCCC") {
-			goodTrace = true
-			break
+	check(func() error {
+		panic("a test string")
+	})
+}
+
+func doErrorsGo(f func() error) error {
+	var err error
+	funcAA(func() {
+		doneCh := make(chan struct{})
+		report := func(e error) {
+			err = e
+			close(doneCh)
+		}
+		errors.Go(report, func() error {
+			var innerErr error
+			funcBB(func() {
+				innerErr = f()
+			})
+			return innerErr
+		})
+		<-doneCh
+	})
+	return err
+}
+
+func TestGo(t *testing.T) {
+	check := func(shouldNil bool, shouldHaveStackTrace bool, f func() error) {
+		err := doErrorsGo(f)
+
+		if !shouldNil {
+			if shouldHaveStackTrace {
+				if !haveTrace(errors.StackTrace(err), "funcBB") {
+					t.Errorf("errors.Go stack trace should contains funcBB")
+				}
+			}
+
+			if !haveTrace(errors.ParentStackTrace(err), "funcAA") {
+				t.Errorf("errors.Go stack trace should contains funcAA")
+			}
+		} else if err != nil {
+			t.Errorf("errors.Go should report nil")
 		}
 	}
 
-	if !goodTrace {
-		t.Errorf("invalid errors.Catch")
+	check(false, false, func() error {
+		return fmt.Errorf("testerr")
+	})
+
+	check(false, true, func() error {
+		return errors.New("testerr")
+	})
+
+	check(true, false, func() error {
+		return nil
+	})
+}
+
+func TestFormat(t *testing.T) {
+	// this test is just for code coverage, because errors.Format is not for machine
+	// so the formated string is not standarized
+	err := doErrorsGo(func() error {
+		return errors.NewWithCause("testerr outer", errors.New("testerr inner"))
+	})
+
+	if !strings.Contains(errors.Format(err), "funcAA") {
+		t.Errorf("errors.Format should contains funcAA")
+	}
+
+	if !strings.Contains(errors.Format(err), "funcBB") {
+		t.Errorf("errors.Format should contains funcBB")
+	}
+
+	if strings.Contains(errors.FormatWithDeep(err, 0), "funcAA") {
+		t.Errorf("errors.FormatWithDeep should not contains funcAA")
+	}
+
+	if strings.Contains(errors.FormatWithDeep(err, 0), "funcBB") {
+		t.Errorf("errors.FormatWithDeep should not contains funcBB")
 	}
 }
