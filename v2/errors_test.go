@@ -242,3 +242,26 @@ func TestNilTrace(t *testing.T) {
 		t.Errorf("invalid errors.ParentStackTrace")
 	}
 }
+
+func funcCCCC() {
+	panic("coba string")
+}
+
+func TestCatchNonError(t *testing.T) {
+	err := errors.Catch(func() error {
+		funcCCCC()
+		return nil
+	})
+
+	goodTrace := false
+	for _, l := range errors.StackTrace(err) {
+		if strings.Contains(l.Func(), "funcCCCC") {
+			goodTrace = true
+			break
+		}
+	}
+
+	if !goodTrace {
+		t.Errorf("invalid errors.Catch")
+	}
+}
