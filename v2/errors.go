@@ -3,7 +3,7 @@
 // This package can be used as drop-in replacement for https://golang.org/pkg/errors package.
 //
 // This package provide StackTrace function to get the stack trace,
-// use Wrap to make sure the error have stack trace
+// use Trace to make sure the error have stack trace
 package errors
 
 import (

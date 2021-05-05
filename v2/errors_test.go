@@ -8,35 +8,35 @@ import (
 	"github.com/payfazz/go-errors/v2"
 )
 
-func TestWrappingNil(t *testing.T) {
-	err := errors.Wrap(nil)
+func TestTraceNil(t *testing.T) {
+	err := errors.Trace(nil)
 	if err != nil {
-		t.Errorf("Wrap(nil) should be nil")
+		t.Errorf("Trace(nil) should be nil")
 	}
 }
 
-func TestIndempotentWrap(t *testing.T) {
+func TestIndempotentTrace(t *testing.T) {
 	err1 := errors.New("testerr")
-	err2 := errors.Wrap(err1)
-	err3 := errors.Wrap(err2)
-	err4 := errors.Wrap(err3)
+	err2 := errors.Trace(err1)
+	err3 := errors.Trace(err2)
+	err4 := errors.Trace(err3)
 
 	if err2 != err3 || err3 != err4 {
-		t.Errorf("wrapped error must be indempotent")
+		t.Errorf("traced error must be indempotent")
 	}
 }
 
-func TestWrapMessage(t *testing.T) {
+func TestTraceMessage(t *testing.T) {
 	err1 := errors.Errorf("testerr")
-	err2 := errors.Wrap(err1)
+	err2 := errors.Trace(err1)
 	if err2.Error() != "testerr" {
-		t.Errorf("Wrapped error should not change error message")
+		t.Errorf("Traced error should not change error message")
 	}
 }
 
 func TestNew(t *testing.T) {
 	err0 := fmt.Errorf("err1")
-	err1 := errors.Wrap(err0)
+	err1 := errors.Trace(err0)
 	err2 := errors.NewWithCause("err2", err1)
 	err3 := errors.NewWithCause("err3", err2)
 
@@ -58,7 +58,7 @@ type myErr struct{ msg string }
 func (e *myErr) Error() string { return e.msg }
 
 func funcAAAAAA(notpanic bool) error {
-	err := errors.Wrap(&myErr{msg: "test err"})
+	err := errors.Trace(&myErr{msg: "test err"})
 	if notpanic {
 		return err
 	}

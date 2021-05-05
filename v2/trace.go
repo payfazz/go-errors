@@ -28,8 +28,8 @@ func (e *tracedErr) Is(target error) bool {
 
 const defaultDeep = 50
 
-// Wrap the err if the err doens't have stack trace
-func Wrap(err error) error {
+// Trace the err if the err doens't have stack trace
+func Trace(err error) error {
 	if err == nil {
 		return nil
 	}
@@ -44,7 +44,7 @@ func Wrap(err error) error {
 	}
 }
 
-// Get stack trace of where the error is generated or wrapped, return nil if none
+// Get stack trace of where the error is generated or first Trace called, return nil if none
 func StackTrace(err error) []trace.Location {
 	if e, ok := err.(*tracedErr); ok {
 		return e.trace
