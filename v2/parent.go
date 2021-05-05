@@ -23,12 +23,13 @@ func Go(report func(error), f func() error) {
 	doReport := func(err error) {
 		if err == nil {
 			report(nil)
+			return
 		}
 
 		if t, ok := err.(*tracedErr); ok {
 			t.parent = parent
 		} else {
-			err = &tracedErr{error: err, parent: parent}
+			err = &tracedErr{err: err, parent: parent}
 		}
 
 		report(err)

@@ -59,6 +59,7 @@ func Get(skip, deep int) (locations []Location) {
 		frame, more := frames.Next()
 		if frame.Line != 0 && frame.File != "" &&
 			!strings.HasPrefix(frame.Function, "runtime.") &&
+			!strings.HasPrefix(frame.Function, "runtime/") &&
 			!strings.HasPrefix(frame.Function, "github.com/payfazz/go-errors/v2.") {
 			locations = append(locations, Location{
 				func_: frame.Function,

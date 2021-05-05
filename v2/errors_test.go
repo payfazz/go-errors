@@ -9,27 +9,27 @@ import (
 )
 
 func TestWrappingNil(t *testing.T) {
-	wrappedErr := errors.Wrap(nil)
-	if wrappedErr != nil {
+	err := errors.Wrap(nil)
+	if err != nil {
 		t.Errorf("Wrap(nil) should be nil")
 	}
 }
 
 func TestIndempotentWrap(t *testing.T) {
-	errOri := errors.New("testerr")
-	errWrapped1 := errors.Wrap(errOri)
-	errWrapped2 := errors.Wrap(errWrapped1)
-	errWrapped3 := errors.Wrap(errWrapped2)
+	err1 := errors.New("testerr")
+	err2 := errors.Wrap(err1)
+	err3 := errors.Wrap(err2)
+	err4 := errors.Wrap(err3)
 
-	if errWrapped1 != errWrapped2 || errWrapped2 != errWrapped3 {
+	if err2 != err3 || err3 != err4 {
 		t.Errorf("wrapped error must be indempotent")
 	}
 }
 
 func TestWrapMessage(t *testing.T) {
-	errOri := errors.Errorf("testerr")
-	errWrapped := errors.Wrap(errOri)
-	if errWrapped.Error() != "testerr" {
+	err1 := errors.Errorf("testerr")
+	err2 := errors.Wrap(err1)
+	if err2.Error() != "testerr" {
 		t.Errorf("Wrapped error should not change error message")
 	}
 }
@@ -57,10 +57,9 @@ type myErr struct{ msg string }
 
 func (e *myErr) Error() string { return e.msg }
 
-// this function name is used for check stack trace
-func func201df1b9f41c6cbf81ee12d34e90e26b(ok bool) error {
+func funcAAAAAA(notpanic bool) error {
 	err := errors.Wrap(&myErr{msg: "test err"})
-	if ok {
+	if notpanic {
 		return err
 	}
 	panic(err)
@@ -68,14 +67,15 @@ func func201df1b9f41c6cbf81ee12d34e90e26b(ok bool) error {
 
 var zero = 0
 
-func func8efcd880187ff6088559a26f82659290(ok bool, f func() error) error {
+func funcBBBBBB(notpanic bool, f func() error) error {
 	errCh := make(chan error)
 	errors.Go(
 		func(err error) {
 			errCh <- err
+			close(errCh)
 		},
 		func() error {
-			if ok {
+			if notpanic {
 				return f()
 			}
 
@@ -87,13 +87,11 @@ func func8efcd880187ff6088559a26f82659290(ok bool, f func() error) error {
 }
 
 func TestFormat(t *testing.T) {
-	funcName := "func201df1b9f41c6cbf81ee12d34e90e26b"
-	e1 := func8efcd880187ff6088559a26f82659290(true, func() error {
-		return func201df1b9f41c6cbf81ee12d34e90e26b(true)
-	})
+	funcName := "funcAAAAAA"
+	err1 := funcBBBBBB(true, func() error { return funcAAAAAA(true) })
 
 	haveTrace := false
-	for _, t := range errors.StackTrace(e1) {
+	for _, t := range errors.StackTrace(err1) {
 		if strings.Contains(t.Func(), funcName) {
 			haveTrace = true
 			break
@@ -104,7 +102,7 @@ func TestFormat(t *testing.T) {
 		t.Errorf("invalid errors.StackTrace")
 	}
 
-	e2 := errors.NewWithCause("test cause", e1)
+	e2 := errors.NewWithCause("test cause", err1)
 
 	if !strings.Contains(errors.Format(e2), funcName) {
 		t.Errorf("invalid errors.Format")
@@ -114,7 +112,7 @@ func TestFormat(t *testing.T) {
 func TestErrorsAs(t *testing.T) {
 	var target *myErr
 
-	e := func201df1b9f41c6cbf81ee12d34e90e26b(true)
+	e := funcAAAAAA(true)
 
 	if !errors.As(e, &target) {
 		t.Errorf("invalid errors.As")
@@ -126,13 +124,26 @@ func TestErrorsAs(t *testing.T) {
 }
 
 func TestGo(t *testing.T) {
-	err := func8efcd880187ff6088559a26f82659290(true, func() error {
-		return func201df1b9f41c6cbf81ee12d34e90e26b(true)
-	})
+	err := funcBBBBBB(true, func() error { return fmt.Errorf("test err") })
+
+	goodParent := false
+	for _, l := range errors.ParentStackTrace(err) {
+		if strings.Contains(l.Func(), "funcBBBBBB") {
+			goodParent = true
+			break
+		}
+	}
+
+	if !goodParent {
+		t.Errorf("invalid errors.ParentStackTrace")
+	}
+}
+func TestGoTraced(t *testing.T) {
+	err := funcBBBBBB(true, func() error { return funcAAAAAA(true) })
 
 	goodTrace := false
 	for _, l := range errors.StackTrace(err) {
-		if strings.Contains(l.Func(), "func201df1b9f41c6cbf81ee12d34e90e26b") {
+		if strings.Contains(l.Func(), "funcAAAAAA") {
 			goodTrace = true
 			break
 		}
@@ -144,7 +155,7 @@ func TestGo(t *testing.T) {
 
 	goodParent := false
 	for _, l := range errors.ParentStackTrace(err) {
-		if strings.Contains(l.Func(), "func8efcd880187ff6088559a26f82659290") {
+		if strings.Contains(l.Func(), "funcBBBBBB") {
 			goodParent = true
 			break
 		}
@@ -156,18 +167,18 @@ func TestGo(t *testing.T) {
 }
 
 func TestGoNil(t *testing.T) {
-	err := func8efcd880187ff6088559a26f82659290(true, func() error { return nil })
+	err := funcBBBBBB(true, func() error { return nil })
 	if err != nil {
 		t.Errorf("invalid errors.Go")
 	}
 }
 
 func TestGoPanic(t *testing.T) {
-	err := func8efcd880187ff6088559a26f82659290(false, nil)
+	err := funcBBBBBB(false, nil)
 
 	goodTrace := false
 	for _, l := range errors.StackTrace(err) {
-		if strings.Contains(l.Func(), "func8efcd880187ff6088559a26f82659290") {
+		if strings.Contains(l.Func(), "funcBBBBBB") {
 			goodTrace = true
 			break
 		}
@@ -179,7 +190,7 @@ func TestGoPanic(t *testing.T) {
 
 	goodParent := false
 	for _, l := range errors.ParentStackTrace(err) {
-		if strings.Contains(l.Func(), "func8efcd880187ff6088559a26f82659290") {
+		if strings.Contains(l.Func(), "funcBBBBBB") {
 			goodParent = true
 			break
 		}
@@ -191,13 +202,11 @@ func TestGoPanic(t *testing.T) {
 }
 
 func TestGoTracedPanic(t *testing.T) {
-	err := func8efcd880187ff6088559a26f82659290(true, func() error {
-		return func201df1b9f41c6cbf81ee12d34e90e26b(false)
-	})
+	err := funcBBBBBB(true, func() error { return funcAAAAAA(false) })
 
 	goodTrace := false
 	for _, l := range errors.StackTrace(err) {
-		if strings.Contains(l.Func(), "func8efcd880187ff6088559a26f82659290") {
+		if strings.Contains(l.Func(), "funcAAAAAA") {
 			goodTrace = true
 			break
 		}
@@ -209,7 +218,7 @@ func TestGoTracedPanic(t *testing.T) {
 
 	goodParent := false
 	for _, l := range errors.ParentStackTrace(err) {
-		if strings.Contains(l.Func(), "func8efcd880187ff6088559a26f82659290") {
+		if strings.Contains(l.Func(), "funcBBBBBB") {
 			goodParent = true
 			break
 		}

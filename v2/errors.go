@@ -30,7 +30,7 @@ func Unwrap(err error) error {
 // see https://golang.org/pkg/errors/#New
 func New(text string) error {
 	return &tracedErr{
-		error: &anyErr{data: text},
+		err:   &anyErr{data: text},
 		trace: trace.Get(1, defaultDeep),
 	}
 }
@@ -38,7 +38,7 @@ func New(text string) error {
 // like New, but you can specify the cause error
 func NewWithCause(text string, cause error) error {
 	return &tracedErr{
-		error: &anyErr{data: text, cause: cause},
+		err:   &anyErr{data: text, cause: cause},
 		trace: trace.Get(1, defaultDeep),
 	}
 }

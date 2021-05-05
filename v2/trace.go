@@ -5,22 +5,25 @@ import (
 )
 
 type tracedErr struct {
-	error
-
+	err    error
 	trace  []trace.Location
 	parent []trace.Location
 }
 
+func (e *tracedErr) Error() string {
+	return e.err.Error()
+}
+
 func (e *tracedErr) Unwrap() error {
-	return Unwrap(e.error)
+	return Unwrap(e.err)
 }
 
 func (e *tracedErr) As(target interface{}) bool {
-	return As(e.error, target)
+	return As(e.err, target)
 }
 
 func (e *tracedErr) Is(target error) bool {
-	return Is(e.error, target)
+	return Is(e.err, target)
 }
 
 const defaultDeep = 50
@@ -36,7 +39,7 @@ func Wrap(err error) error {
 	}
 
 	return &tracedErr{
-		error: err,
+		err:   err,
 		trace: trace.Get(1, defaultDeep),
 	}
 }

@@ -11,7 +11,7 @@ func Catch(f func() error) (err error) {
 			if recAsErr, ok := rec.(*tracedErr); ok {
 				err = recAsErr
 			} else {
-				err = &tracedErr{error: &anyErr{data: rec}, trace: trace.Get(1, defaultDeep)}
+				err = &tracedErr{err: &anyErr{data: rec}, trace: trace.Get(1, defaultDeep)}
 			}
 		}
 	}()
