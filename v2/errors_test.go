@@ -107,6 +107,10 @@ func TestFormat(t *testing.T) {
 	if !strings.Contains(errors.Format(e2), funcName) {
 		t.Errorf("invalid errors.Format")
 	}
+
+	if strings.Contains(errors.FormatWithDeep(e2, 0), funcName) {
+		t.Errorf("invalid errors.FormatWithDeep")
+	}
 }
 
 func TestErrorsAs(t *testing.T) {
