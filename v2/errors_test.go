@@ -135,7 +135,7 @@ func TestCatch(t *testing.T) {
 			return err
 		})
 		if err2 == nil {
-			t.Errorf("errors.Catch should return non-nil when f returning non-nil")
+			t.Errorf("errors.Catch should return non-nil when f returning non-nil or panic")
 		}
 		if !haveTrace(errors.StackTrace(err2), "funcAA") {
 			t.Errorf("errors.Catch trace should contains funcAA")
