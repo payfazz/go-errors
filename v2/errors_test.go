@@ -233,11 +233,15 @@ func TestFormat(t *testing.T) {
 		t.Errorf("errors.Format should contains funcBB")
 	}
 
-	if strings.Contains(errors.FormatWithDeep(err, 0), "funcAA") {
+	filter := func(trace.Location) bool {
+		return false
+	}
+
+	if strings.Contains(errors.FormatWithFilter(err, filter), "funcAA") {
 		t.Errorf("errors.FormatWithDeep should not contains funcAA")
 	}
 
-	if strings.Contains(errors.FormatWithDeep(err, 0), "funcBB") {
+	if strings.Contains(errors.FormatWithFilter(err, filter), "funcBB") {
 		t.Errorf("errors.FormatWithDeep should not contains funcBB")
 	}
 }

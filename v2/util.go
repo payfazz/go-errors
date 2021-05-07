@@ -2,17 +2,23 @@ package errors
 
 import (
 	"strings"
+
+	"github.com/payfazz/go-errors/v2/trace"
 )
+
+func showAll(trace.Location) bool {
+	return true
+}
 
 // Format representation of the Error, including stack trace.
 //
 // Use err.Error() if you want to get just the error string
 func Format(err error) string {
-	return FormatWithDeep(err, defaultDeep)
+	return FormatWithFilter(err, showAll)
 }
 
-// like Format, but limit stack trace count by deep
-func FormatWithDeep(err error, deep int) string {
+// like Format, but you can filter what location to include in the formated string
+func FormatWithFilter(err error, filter func(trace.Location) bool) string {
 	var sb strings.Builder
 
 	add := func(err error) {
@@ -23,9 +29,9 @@ func FormatWithDeep(err error, deep int) string {
 		sb.WriteString("Error: ")
 		sb.WriteString(err.Error())
 		sb.WriteByte('\n')
-		for i, l := range StackTrace(err) {
-			if i == deep {
-				break
+		for _, l := range StackTrace(err) {
+			if !filter(l) {
+				continue
 			}
 			sb.WriteString("- ")
 			sb.WriteString(l.String())
@@ -33,16 +39,18 @@ func FormatWithDeep(err error, deep int) string {
 		}
 
 		parentTrace := ParentStackTrace(err)
-		if len(parentTrace) > 0 {
-			sb.WriteString("From goroutine created by:\n")
-			for i, l := range parentTrace {
-				if i == deep {
-					break
-				}
-				sb.WriteString("- ")
-				sb.WriteString(l.String())
-				sb.WriteByte('\n')
+		firstParentTrace := true
+		for _, l := range parentTrace {
+			if !filter(l) {
+				continue
 			}
+			if firstParentTrace {
+				sb.WriteString("From goroutine created by:\n")
+				firstParentTrace = false
+			}
+			sb.WriteString("- ")
+			sb.WriteString(l.String())
+			sb.WriteByte('\n')
 		}
 	}
 
