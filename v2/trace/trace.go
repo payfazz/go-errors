@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"runtime"
 	"strings"
+	"sync"
 )
+
+var pool sync.Pool
 
 // Location of execution
 type Location struct {
@@ -46,7 +49,19 @@ func Get(skip, deep int) (locations []Location) {
 	}
 	skip += 2
 
-	pc := make([]uintptr, deep+10)
+	dataLen := deep + 10
+	var data []uintptr
+	if tmp1 := pool.Get(); tmp1 != nil {
+		tmp2 := tmp1.([]uintptr)
+		if len(tmp2) >= dataLen {
+			data = tmp2
+		}
+	}
+	if data == nil {
+		data = make([]uintptr, dataLen)
+	}
+
+	pc := data[:dataLen]
 	pc = pc[:runtime.Callers(skip, pc)]
 	if len(pc) == 0 {
 		return nil
@@ -58,9 +73,8 @@ func Get(skip, deep int) (locations []Location) {
 	for {
 		frame, more := frames.Next()
 		if frame.Line != 0 && frame.File != "" &&
-			!strings.HasPrefix(frame.Function, "runtime.") &&
-			!strings.HasPrefix(frame.Function, "runtime/") &&
-			!strings.HasPrefix(frame.Function, "github.com/payfazz/go-errors/v2.") {
+			!hasPkgPrefix(frame.Function, "runtime") &&
+			!hasPkgPrefix(frame.Function, "github.com/payfazz/go-errors/v2") {
 			locations = append(locations, Location{
 				func_: frame.Function,
 				file:  frame.File,
@@ -75,5 +89,23 @@ func Get(skip, deep int) (locations []Location) {
 		}
 	}
 
+	pool.Put(data)
+
 	return
+}
+
+func hasPkgPrefix(what, pkg string) bool {
+	if !strings.HasPrefix(what, pkg) {
+		return false
+	}
+
+	if len(what) == len(pkg) {
+		return true
+	}
+
+	if len(what) > len(pkg) {
+		return what[len(pkg)] == '.' || what[len(pkg)] == '/'
+	}
+
+	return false
 }

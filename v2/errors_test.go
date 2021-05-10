@@ -121,47 +121,56 @@ func TestNonTraced(t *testing.T) {
 }
 
 func TestCatch(t *testing.T) {
-	err1 := errors.Catch(func() error { return nil })
-	if err1 != nil {
-		t.Errorf("errors.Catch should return nil when f returning nil")
-	}
-
-	check := func(f func() error) {
-		err2 := errors.Catch(func() error {
+	check := func(shouldNil bool, shouldHaveTrace bool, f func() error) {
+		err := errors.Catch(func() error {
 			var err error
 			funcAA(func() {
 				err = f()
 			})
 			return err
 		})
-		if err2 == nil {
+
+		if shouldNil {
+			if err != nil {
+				t.Errorf("errors.Catch should return nil when f returning nil")
+			}
+		} else if err == nil {
 			t.Errorf("errors.Catch should return non-nil when f returning non-nil or panic")
 		}
-		if !haveTrace(errors.StackTrace(err2), "funcAA") {
+
+		if shouldHaveTrace && !haveTrace(errors.StackTrace(err), "funcAA") {
 			t.Errorf("errors.Catch trace should contains funcAA")
 		}
 	}
 
-	check(func() error {
+	check(true, false, func() error {
+		return nil
+	})
+
+	check(false, true, func() error {
 		return errors.New("testerr")
 	})
 
-	check(func() error {
+	check(false, false, func() error {
+		return fmt.Errorf("testerr")
+	})
+
+	check(false, true, func() error {
 		panic(errors.New("testerr"))
 	})
 
-	check(func() error {
+	check(false, true, func() error {
 		panic(fmt.Errorf("testerr"))
 	})
 
-	check(func() error {
+	check(false, true, func() error {
 		var something interface{ something() }
 		// this trigger nil pointer exception
 		something.something()
 		return nil
 	})
 
-	check(func() error {
+	check(false, true, func() error {
 		panic("a test string")
 	})
 }
@@ -187,34 +196,55 @@ func doErrorsGo(f func() error) error {
 }
 
 func TestGo(t *testing.T) {
-	check := func(shouldNil bool, shouldHaveStackTrace bool, f func() error) {
+	check := func(shouldNil bool, shouldHaveTrace bool, f func() error) {
 		err := doErrorsGo(f)
 
-		if !shouldNil {
-			if shouldHaveStackTrace {
-				if !haveTrace(errors.StackTrace(err), "funcBB") {
-					t.Errorf("errors.Go stack trace should contains funcBB")
-				}
+		if shouldNil {
+			if err != nil {
+				t.Errorf("errors.Go should return nil when f returning nil")
 			}
+		} else if err == nil {
+			t.Errorf("errors.Go should return non-nil when f returning non-nil or panic")
+		}
 
-			if !haveTrace(errors.ParentStackTrace(err), "funcAA") {
-				t.Errorf("errors.Go stack trace should contains funcAA")
-			}
-		} else if err != nil {
-			t.Errorf("errors.Go should report nil")
+		if shouldHaveTrace && !haveTrace(errors.StackTrace(err), "funcBB") {
+			t.Errorf("errors.Go stack trace should contains funcBB")
+		}
+
+		if !shouldNil && !haveTrace(errors.ParentStackTrace(err), "funcAA") {
+			t.Errorf("errors.Go parent stack trace should contains funcAA")
 		}
 	}
 
-	check(false, false, func() error {
-		return fmt.Errorf("testerr")
+	check(true, false, func() error {
+		return nil
 	})
 
 	check(false, true, func() error {
 		return errors.New("testerr")
 	})
 
-	check(true, false, func() error {
+	check(false, false, func() error {
+		return fmt.Errorf("testerr")
+	})
+
+	check(false, true, func() error {
+		panic(errors.New("testerr"))
+	})
+
+	check(false, true, func() error {
+		panic(fmt.Errorf("testerr"))
+	})
+
+	check(false, true, func() error {
+		var something interface{ something() }
+		// this trigger nil pointer exception
+		something.something()
 		return nil
+	})
+
+	check(false, true, func() error {
+		panic("a test string")
 	})
 }
 
