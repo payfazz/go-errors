@@ -26,7 +26,7 @@ func (e *tracedErr) Is(target error) bool {
 	return Is(e.err, target)
 }
 
-const defaultDeep = 100
+const defaultDeep = 150
 
 // Trace will return new error that have stack trace
 //

@@ -6,17 +6,6 @@ import (
 	"github.com/payfazz/go-errors/v2/trace"
 )
 
-func showAll(trace.Location) bool {
-	return true
-}
-
-// Format representation of the Error, including stack trace.
-//
-// Use err.Error() if you want to get just the error string
-func Format(err error) string {
-	return FormatWithFilter(err, showAll)
-}
-
 // like Format, but you can filter what location to include in the formated string
 func FormatWithFilter(err error, filter func(trace.Location) bool) string {
 	var sb strings.Builder
@@ -60,4 +49,16 @@ func FormatWithFilter(err error, filter func(trace.Location) bool) string {
 	}
 
 	return sb.String()
+}
+
+// like Format, but you can filter pkg location to include in the formated string
+func FormatWithFilterPkgs(err error, pkgs ...string) string {
+	return FormatWithFilter(err, func(l trace.Location) bool { return l.InPkg(pkgs...) })
+}
+
+// Format representation of the Error, including stack trace.
+//
+// Use err.Error() if you want to get just the error string
+func Format(err error) string {
+	return FormatWithFilter(err, func(l trace.Location) bool { return true })
 }
