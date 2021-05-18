@@ -17,7 +17,7 @@ type Location struct {
 }
 
 // String representation of Location
-func (l Location) String() string {
+func (l *Location) String() string {
 	if l.func_ == "" {
 		return fmt.Sprintf("%s:%d", l.file, l.line)
 	}
@@ -26,13 +26,13 @@ func (l Location) String() string {
 }
 
 // the File that this Location point to
-func (l Location) File() string { return l.file }
+func (l *Location) File() string { return l.file }
 
 // the Line that this Location point to
-func (l Location) Line() int { return l.line }
+func (l *Location) Line() int { return l.line }
 
 // the Function that this location point to
-func (l Location) Func() string { return l.func_ }
+func (l *Location) Func() string { return l.func_ }
 
 // Get return list of location of stack trace for calling function.
 //
