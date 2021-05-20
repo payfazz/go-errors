@@ -1,4 +1,4 @@
-// Package trace provide utility to get stack trace.
+// Provide utility to get stack trace.
 package trace
 
 import (
@@ -9,7 +9,7 @@ import (
 
 var pool sync.Pool
 
-// Location of execution
+// Single location of the trace
 type Location struct {
 	file  string
 	line  int
@@ -25,13 +25,13 @@ func (l *Location) String() string {
 	return fmt.Sprintf("%s:%d (%s)", l.file, l.line, l.func_)
 }
 
-// the File that this Location point to
+// The file path that this Location point to
 func (l *Location) File() string { return l.file }
 
-// the Line that this Location point to
+// The line that this Location point to
 func (l *Location) Line() int { return l.line }
 
-// the Function that this location point to
+// The path-qualified function that this location point to
 func (l *Location) Func() string { return l.func_ }
 
 // Get return list of location of stack trace for calling function.

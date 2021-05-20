@@ -59,6 +59,10 @@ func TestNewWithCause(t *testing.T) {
 	if !errors.Is(err3, err0) {
 		t.Errorf("invalid errors.Is")
 	}
+
+	if errors.ParentStackTrace(err3) != nil {
+		t.Errorf("errors.ParentStackTrace should return nil")
+	}
 }
 
 type myErr struct{ msg string }
@@ -246,32 +250,4 @@ func TestGo(t *testing.T) {
 	check(false, true, func() error {
 		panic("a test string")
 	})
-}
-
-func TestFormat(t *testing.T) {
-	// this test is just for code coverage, because errors.Format is not for machine
-	// so the formated string is not standarized
-	err := doErrorsGo(func() error {
-		return errors.NewWithCause("testerr outer", errors.New("testerr inner"))
-	})
-
-	if !strings.Contains(errors.Format(err), "funcAA") {
-		t.Errorf("errors.Format should contains funcAA")
-	}
-
-	if !strings.Contains(errors.Format(err), "funcBB") {
-		t.Errorf("errors.Format should contains funcBB")
-	}
-
-	filter := func(trace.Location) bool {
-		return false
-	}
-
-	if strings.Contains(errors.FormatWithFilter(err, filter), "funcAA") {
-		t.Errorf("errors.FormatWithDeep should not contains funcAA")
-	}
-
-	if strings.Contains(errors.FormatWithFilter(err, filter), "funcBB") {
-		t.Errorf("errors.FormatWithDeep should not contains funcBB")
-	}
 }

@@ -7,7 +7,7 @@ import (
 type tracedErr struct {
 	err    error
 	trace  []trace.Location
-	parent []trace.Location
+	parent *[]trace.Location
 }
 
 func (e *tracedErr) Error() string {
@@ -31,6 +31,8 @@ const defaultDeep = 150
 // Trace will return new error that have stack trace
 //
 // will return same err if err already have stack trace
+//
+// use Is function to compare the returned error with others, because equality (==) operator will most likely failed
 func Trace(err error) error {
 	if err == nil {
 		return nil
