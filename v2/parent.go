@@ -23,7 +23,7 @@ func ParentStackTrace(err error) []trace.Location {
 //
 // run f in that go routine, if f panic or returned, that value will be passed to report function,
 //
-// nil will be reported to report function if no error occured to indicate that f is finished
+// nil WILL be reported to report function if no error occured to indicate that f is finished
 //
 // the non-nil reported error will return non-nil when passed to ParentStackTrace
 func Go(report func(error), f func() error) {

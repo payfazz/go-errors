@@ -1,6 +1,6 @@
 // Package errors.
 //
-// This package can be used as drop-in replacement for https://golang.org/pkg/errors package.
+// This package can be used as drop-in replacement for standard errors package.
 //
 // This package provide StackTrace function to get the stack trace.
 //

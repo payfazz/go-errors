@@ -6,7 +6,7 @@ import (
 	"github.com/payfazz/go-errors/v2/trace"
 )
 
-// see https://golang.org/pkg/fmt/#Errorf
+// see https://pkg.go.dev/fmt/#Errorf
 func Errorf(format string, a ...interface{}) error {
 	return &tracedErr{
 		err:   fmt.Errorf(format, a...),

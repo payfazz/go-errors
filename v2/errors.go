@@ -6,22 +6,22 @@ import (
 	"github.com/payfazz/go-errors/v2/trace"
 )
 
-// see https://golang.org/pkg/errors/#As
+// see https://pkg.go.dev/errors/#As
 func As(err error, target interface{}) bool {
 	return stderrors.As(err, target)
 }
 
-// see https://golang.org/pkg/errors/#Is
+// see https://pkg.go.dev/errors/#Is
 func Is(err, target error) bool {
 	return stderrors.Is(err, target)
 }
 
-// see https://golang.org/pkg/errors/#Unwrap
+// see https://pkg.go.dev/errors/#Unwrap
 func Unwrap(err error) error {
 	return stderrors.Unwrap(err)
 }
 
-// see https://golang.org/pkg/errors/#New
+// see https://pkg.go.dev/errors/#New
 func New(text string) error {
 	return &tracedErr{
 		err:   &anyErr{data: text},

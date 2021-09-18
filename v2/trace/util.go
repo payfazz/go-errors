@@ -22,7 +22,7 @@ func inPkg(what, pkg string) bool {
 
 // Filter the locations slice by pkg prefix
 func FilterByPkgs(locations []Location, pkgs ...string) []Location {
-	var ret []Location
+	ret := make([]Location, 0, len(locations))
 	for _, l := range locations {
 		if l.InPkg(pkgs...) {
 			ret = append(ret, l)
