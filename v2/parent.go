@@ -29,20 +29,40 @@ func ParentStackTrace(err error) []trace.Location {
 func Go(report func(error), f func() error) {
 	parent := trace.Get(1, defaultDeep)
 
-	doReport := func(err error) {
-		if err == nil {
+	doReport := func(data interface{}) {
+		if data == nil {
 			report(nil)
 			return
 		}
 
-		if t, ok := err.(*tracedErr); ok {
-			t.parent = &parent
-		} else {
-			err = &tracedErr{err: err, parent: &parent}
+		if err, ok := data.(*tracedErr); ok {
+			err.parent = &parent
+			report(err)
+			return
 		}
 
-		report(err)
+		if err, ok := data.(error); ok {
+			report(&tracedErr{
+				err:    err,
+				trace:  trace.Get(2, defaultDeep),
+				parent: &parent,
+			})
+			return
+		}
+
+		report(&tracedErr{
+			err:    &anyErr{data: data},
+			trace:  trace.Get(2, defaultDeep),
+			parent: &parent,
+		})
 	}
 
-	go func() { doReport(Catch(f)) }()
+	go func() {
+		defer func() {
+			if rec := recover(); rec != nil {
+				doReport(rec)
+			}
+		}()
+		doReport(f())
+	}()
 }
