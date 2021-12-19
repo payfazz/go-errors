@@ -10,13 +10,17 @@ import (
 //
 // parent goroutine stack trace only available if the goroutine create by Go function
 func ParentStackTrace(err error) []trace.Location {
-	if e, ok := err.(*tracedErr); ok {
+	switch e := err.(type) {
+	case *tracedErr:
 		if e.parent == nil {
 			return nil
 		}
 		return *e.parent
+	case interface{ ParentStackTrace() []trace.Location }:
+		return e.ParentStackTrace()
+	default:
+		return nil
 	}
-	return nil
 }
 
 // Spawn go routine

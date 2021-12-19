@@ -52,8 +52,12 @@ func Trace(err error) error {
 //
 // return nil if err doesn't have stack trace
 func StackTrace(err error) []trace.Location {
-	if e, ok := err.(*tracedErr); ok {
+	switch e := err.(type) {
+	case *tracedErr:
 		return e.trace
+	case interface{ StackTrace() []trace.Location }:
+		return e.StackTrace()
+	default:
+		return nil
 	}
-	return nil
 }
