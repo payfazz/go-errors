@@ -1,63 +1,60 @@
 package errors
 
 import (
+	stderrors "errors"
+
 	"github.com/payfazz/go-errors/v2/trace"
 )
 
-type tracedErr struct {
-	err    error
-	trace  []trace.Location
-	parent *[]trace.Location
+const traceDeep = 150
+
+type traced struct {
+	err   error
+	trace []trace.Location
 }
 
-func (e *tracedErr) Error() string {
-	return e.err.Error()
-}
+func (e *traced) Error() string              { return e.err.Error() }
+func (e *traced) Unwrap() error              { return Unwrap(e.err) }
+func (e *traced) As(target interface{}) bool { return As(e.err, target) }
+func (e *traced) Is(target error) bool       { return Is(e.err, target) }
 
-func (e *tracedErr) Unwrap() error {
-	return Unwrap(e.err)
-}
+func (e *traced) Untrace() error               { return e.err }
+func (e *traced) StackTrace() []trace.Location { return e.trace }
 
-func (e *tracedErr) As(target interface{}) bool {
-	return As(e.err, target)
+type stackTracer interface {
+	StackTrace() []trace.Location
 }
-
-func (e *tracedErr) Is(target error) bool {
-	return Is(e.err, target)
-}
-
-const defaultDeep = 150
 
 // Trace will return new error that have stack trace
 //
 // will return same err if err already have stack trace
 //
-// use Is function to compare the returned error with others, because equality (==) operator will most likely failed
+// use Is function to compare the returned error with others, because equality (==) operator will fail
 func Trace(err error) error {
 	if err == nil {
 		return nil
 	}
 
-	if _, ok := err.(*tracedErr); ok {
-		return err
+	cur := err
+	for cur != nil {
+		if _, ok := cur.(stackTracer); ok {
+			return err
+		}
+		cur = stderrors.Unwrap(cur)
 	}
 
-	return &tracedErr{
-		err:   err,
-		trace: trace.Get(1, defaultDeep),
-	}
+	return &traced{err, trace.Get(1, traceDeep)}
 }
 
 // Get stack trace of err
 //
 // return nil if err doesn't have stack trace
 func StackTrace(err error) []trace.Location {
-	switch e := err.(type) {
-	case *tracedErr:
-		return e.trace
-	case interface{ StackTrace() []trace.Location }:
-		return e.StackTrace()
-	default:
-		return nil
+	for err != nil {
+		if t, ok := err.(stackTracer); ok {
+			return t.StackTrace()
+		}
+		err = stderrors.Unwrap(err)
 	}
+	return nil
 }

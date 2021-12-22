@@ -2,6 +2,7 @@ package errors
 
 import (
 	stderrors "errors"
+	"fmt"
 
 	"github.com/payfazz/go-errors/v2/trace"
 )
@@ -23,16 +24,23 @@ func Unwrap(err error) error {
 
 // see https://pkg.go.dev/errors/#New
 func New(text string) error {
-	return &tracedErr{
-		err:   &anyErr{data: text},
-		trace: trace.Get(1, defaultDeep),
-	}
+	return &traced{stderrors.New(text), trace.Get(1, traceDeep)}
 }
+
+// see https://pkg.go.dev/fmt/#Errorf
+func Errorf(format string, a ...interface{}) error {
+	return &traced{fmt.Errorf(format, a...), trace.Get(1, traceDeep)}
+}
+
+type wrapper struct {
+	msg   string
+	cause error
+}
+
+func (w *wrapper) Error() string { return w.msg }
+func (w *wrapper) Unwrap() error { return w.cause }
 
 // like New, but you can specify the cause error
 func NewWithCause(text string, cause error) error {
-	return &tracedErr{
-		err:   &anyErr{data: text, cause: cause},
-		trace: trace.Get(1, defaultDeep),
-	}
+	return &traced{&wrapper{text, cause}, trace.Get(1, traceDeep)}
 }

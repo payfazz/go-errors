@@ -59,10 +59,6 @@ func TestNewWithCause(t *testing.T) {
 	if !errors.Is(err3, err0) {
 		t.Errorf("invalid errors.Is")
 	}
-
-	if errors.ParentStackTrace(err3) != nil {
-		t.Errorf("errors.ParentStackTrace should return nil")
-	}
 }
 
 type myErr struct{ msg string }
@@ -119,9 +115,6 @@ func TestNonTraced(t *testing.T) {
 	if errors.StackTrace(fmt.Errorf("testerror")) != nil {
 		t.Errorf("errors.StackTrace on non traced error should return nil")
 	}
-	if errors.ParentStackTrace(fmt.Errorf("testerror")) != nil {
-		t.Errorf("errors.ParentStackTrace on non traced error should return nil")
-	}
 }
 
 func TestCatch(t *testing.T) {
@@ -144,79 +137,6 @@ func TestCatch(t *testing.T) {
 
 		if shouldHaveTrace && !haveTrace(errors.StackTrace(err), "funcAA") {
 			t.Errorf("errors.Catch trace should contains funcAA")
-		}
-	}
-
-	check(true, false, func() error {
-		return nil
-	})
-
-	check(false, true, func() error {
-		return errors.New("testerr")
-	})
-
-	check(false, false, func() error {
-		return fmt.Errorf("testerr")
-	})
-
-	check(false, true, func() error {
-		panic(errors.New("testerr"))
-	})
-
-	check(false, true, func() error {
-		panic(fmt.Errorf("testerr"))
-	})
-
-	check(false, true, func() error {
-		var something interface{ something() }
-		// this trigger nil pointer exception
-		something.something()
-		return nil
-	})
-
-	check(false, true, func() error {
-		panic("a test string")
-	})
-}
-
-func doErrorsGo(f func() error) error {
-	var err error
-	funcAA(func() {
-		doneCh := make(chan struct{})
-		report := func(e error) {
-			err = e
-			close(doneCh)
-		}
-		errors.Go(report, func() error {
-			var innerErr error
-			funcBB(func() {
-				innerErr = f()
-			})
-			return innerErr
-		})
-		<-doneCh
-	})
-	return err
-}
-
-func TestGo(t *testing.T) {
-	check := func(shouldNil bool, shouldHaveTrace bool, f func() error) {
-		err := doErrorsGo(f)
-
-		if shouldNil {
-			if err != nil {
-				t.Errorf("errors.Go should return nil when f returning nil")
-			}
-		} else if err == nil {
-			t.Errorf("errors.Go should return non-nil when f returning non-nil or panic")
-		}
-
-		if shouldHaveTrace && !haveTrace(errors.StackTrace(err), "funcBB") {
-			t.Errorf("errors.Go stack trace should contains funcBB")
-		}
-
-		if !shouldNil && !haveTrace(errors.ParentStackTrace(err), "funcAA") {
-			t.Errorf("errors.Go parent stack trace should contains funcAA")
 		}
 	}
 
