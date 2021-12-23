@@ -49,18 +49,19 @@ func Get(skip, deep int) (locations []Location) {
 	skip += 2
 
 	dataLen := deep + 10
-	var data []uintptr
+	var data *[]uintptr
 	if tmp1 := pool.Get(); tmp1 != nil {
-		tmp2 := tmp1.([]uintptr)
-		if len(tmp2) >= dataLen {
+		tmp2 := tmp1.(*[]uintptr)
+		if len(*tmp2) >= dataLen {
 			data = tmp2
 		}
 	}
 	if data == nil {
-		data = make([]uintptr, dataLen)
+		tmp := make([]uintptr, dataLen)
+		data = &tmp
 	}
 
-	pc := data[:dataLen]
+	pc := (*data)[:dataLen]
 	pc = pc[:runtime.Callers(skip, pc)]
 	if len(pc) == 0 {
 		return nil
