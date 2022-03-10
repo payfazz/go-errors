@@ -1,8 +1,10 @@
 package errors_test
 
 import (
+	"bytes"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/payfazz/go-errors/v2"
 )
@@ -28,9 +30,17 @@ func doSomething() error {
 }
 
 func Example() {
+	var output bytes.Buffer
+
 	if err := errors.Catch(doSomething); err != nil {
 		for _, loc := range errors.StackTrace(err) {
-			fmt.Fprintln(os.Stderr, loc.String())
+			fmt.Fprintln(&output, loc.String())
 		}
 	}
+
+	fmt.Println(
+		strings.Contains(output.String(), "readFile"),
+		strings.Contains(output.String(), "doSomething"),
+	)
+	// Output: true true
 }
