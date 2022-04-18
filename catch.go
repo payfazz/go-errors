@@ -8,7 +8,12 @@ import (
 )
 
 // run f, if f panic or returned, that value will be returned by this function
-func Catch(f func() error) (err error) {
+func Catch(f func() error) error {
+	_, err := Catch2(func() (struct{}, error) { return struct{}{}, f() })
+	return err
+}
+
+func Catch2[T any](f func() (T, error)) (result T, err error) {
 	defer func() {
 		rec := recover()
 		if rec == nil {
