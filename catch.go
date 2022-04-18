@@ -13,7 +13,8 @@ func Catch(f func() error) error {
 	return err
 }
 
-func Catch2[T any](f func() (T, error)) (result T, err error) {
+// same with Catch, but with generic result type
+func Catch2[Result any](f func() (Result, error)) (result Result, err error) {
 	defer func() {
 		rec := recover()
 		if rec == nil {
