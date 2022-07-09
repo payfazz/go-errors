@@ -13,10 +13,10 @@ type traced struct {
 	trace []trace.Location
 }
 
-func (e *traced) Error() string              { return e.err.Error() }
-func (e *traced) Unwrap() error              { return Unwrap(e.err) }
-func (e *traced) As(target interface{}) bool { return As(e.err, target) }
-func (e *traced) Is(target error) bool       { return Is(e.err, target) }
+func (e *traced) Error() string        { return e.err.Error() }
+func (e *traced) Unwrap() error        { return Unwrap(e.err) }
+func (e *traced) As(target any) bool   { return As(e.err, target) }
+func (e *traced) Is(target error) bool { return Is(e.err, target) }
 
 func (e *traced) Untrace() error               { return e.err }
 func (e *traced) StackTrace() []trace.Location { return e.trace }
@@ -35,6 +35,12 @@ func Trace(err error) error {
 		return nil
 	}
 
+	return doTrace(err)
+}
+
+// this function is separated from Trace,
+// to make sure that Trace function is simple enough and get inlined
+func doTrace(err error) error {
 	cur := err
 	for cur != nil {
 		if _, ok := cur.(stackTracer); ok {

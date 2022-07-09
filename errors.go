@@ -8,7 +8,7 @@ import (
 )
 
 // see https://pkg.go.dev/errors/#As
-func As(err error, target interface{}) bool {
+func As(err error, target any) bool {
 	return stderrors.As(err, target)
 }
 
@@ -28,7 +28,7 @@ func New(text string) error {
 }
 
 // see https://pkg.go.dev/fmt/#Errorf
-func Errorf(format string, a ...interface{}) error {
+func Errorf(format string, a ...any) error {
 	return &traced{fmt.Errorf(format, a...), trace.Get(1, traceDeep)}
 }
 
