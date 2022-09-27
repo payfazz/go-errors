@@ -1,7 +1,10 @@
-package errors
+package errors_test
 
 import (
+	stderrors "errors"
 	"testing"
+
+	"github.com/payfazz/go-errors/v2"
 )
 
 type asTypeErrTest struct{}
@@ -11,9 +14,9 @@ func (*asTypeErrTest) SomeFunc()     {}
 
 func TestAsType(t *testing.T) {
 	originalErr := &asTypeErrTest{}
-	wrappedErr := Errorf("test %w", originalErr)
+	wrappedErr := errors.Errorf("test %w", originalErr)
 
-	e1, ok := AsType[*asTypeErrTest](wrappedErr)
+	e1, ok := errors.AsType[*asTypeErrTest](wrappedErr)
 	if !ok {
 		t.FailNow()
 	}
@@ -21,7 +24,7 @@ func TestAsType(t *testing.T) {
 		t.FailNow()
 	}
 
-	e2, ok := AsType[interface {
+	e2, ok := errors.AsType[interface {
 		error
 		SomeFunc()
 	}](wrappedErr)
@@ -30,5 +33,18 @@ func TestAsType(t *testing.T) {
 	}
 	if e2 != originalErr {
 		t.FailNow()
+	}
+}
+
+func TestCheck(t *testing.T) {
+	err := errors.Catch(func() error {
+		funcAA(func() {
+			errors.Check(stderrors.New("testerr"))
+		})
+		return nil
+	})
+
+	if !haveTrace(errors.StackTrace(err), "funcAA") {
+		t.Fatalf("should contain funcAA")
 	}
 }
