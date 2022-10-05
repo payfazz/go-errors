@@ -18,13 +18,6 @@ func (e *traced) Unwrap() error        { return Unwrap(e.err) }
 func (e *traced) As(target any) bool   { return As(e.err, target) }
 func (e *traced) Is(target error) bool { return Is(e.err, target) }
 
-func (e *traced) Untrace() error               { return e.err }
-func (e *traced) StackTrace() []trace.Location { return e.trace }
-
-type stackTracer interface {
-	StackTrace() []trace.Location
-}
-
 // Trace will return new error that have stack trace
 //
 // will return same err if err already have stack trace
@@ -43,7 +36,7 @@ func Trace(err error) error {
 func doTrace(err error) error {
 	cur := err
 	for cur != nil {
-		if _, ok := cur.(stackTracer); ok {
+		if _, ok := cur.(*traced); ok {
 			return err
 		}
 		cur = stderrors.Unwrap(cur)
@@ -57,8 +50,8 @@ func doTrace(err error) error {
 // return nil if err doesn't have stack trace
 func StackTrace(err error) []trace.Location {
 	for err != nil {
-		if t, ok := err.(stackTracer); ok {
-			return t.StackTrace()
+		if t, ok := err.(*traced); ok {
+			return t.trace
 		}
 		err = stderrors.Unwrap(err)
 	}

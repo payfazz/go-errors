@@ -1,8 +1,11 @@
 package errors_test
 
 import (
+	stderrors "errors"
 	"strings"
+	"testing"
 
+	"github.com/payfazz/go-errors/v2"
 	"github.com/payfazz/go-errors/v2/trace"
 )
 
@@ -17,4 +20,17 @@ func haveTrace(ls []trace.Location, what string) bool {
 		}
 	}
 	return false
+}
+
+func TestCheck(t *testing.T) {
+	err := errors.Catch(func() error {
+		funcAA(func() {
+			errors.Check(stderrors.New("testerr"))
+		})
+		return nil
+	})
+
+	if !haveTrace(errors.StackTrace(err), "funcAA") {
+		t.Fatalf("should contain funcAA")
+	}
 }

@@ -8,4 +8,4 @@ This package provide `func StackTrace(error) []trace.Location` to get the stack 
 
 Stack trace can be attached to any `error` by passing it to `func Trace(error) error`.
 
-`New`, `NewWithCause`, and `Errorf` function will return error that have stack trace.
+`New`, and `Errorf` function will return error that have stack trace.

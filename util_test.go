@@ -12,7 +12,7 @@ func TestFormat(t *testing.T) {
 	funcAA(func() {
 		funcBB(func() {
 			err = errors.New("err1")
-			err = errors.NewWithCause("err2", err)
+			err = errors.Errorf("err2: %w", err)
 		})
 	})
 
@@ -31,7 +31,7 @@ func TestFormatFilter(t *testing.T) {
 	funcAA(func() {
 		funcBB(func() {
 			err = errors.New("err1")
-			err = errors.NewWithCause("err2", err)
+			err = errors.Errorf("err2: %w", err)
 		})
 	})
 

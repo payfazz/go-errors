@@ -32,15 +32,9 @@ func Errorf(format string, a ...any) error {
 	return &traced{fmt.Errorf(format, a...), trace.Get(1, traceDeep)}
 }
 
-type wrapper struct {
-	msg   string
-	cause error
-}
-
-func (w *wrapper) Error() string { return w.msg }
-func (w *wrapper) Unwrap() error { return w.cause }
-
-// like New, but you can specify the cause error
-func NewWithCause(text string, cause error) error {
-	return &traced{&wrapper{text, cause}, trace.Get(1, traceDeep)}
+// Check will panic if err is not nil
+func Check(err error) {
+	if err != nil {
+		panic(Trace(err))
+	}
 }

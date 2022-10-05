@@ -29,7 +29,7 @@ func Catch2[Result any](f func() (Result, error)) (result Result, err error) {
 
 		cur := recErr
 		for cur != nil {
-			if _, ok := cur.(stackTracer); ok {
+			if _, ok := cur.(*traced); ok {
 				err = recErr
 				return
 			}

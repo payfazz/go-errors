@@ -30,12 +30,8 @@ func FormatWithFilter(err error, filter func(trace.Location) bool) string {
 		sb.WriteString(makeOneLine(err.Error()))
 		sb.WriteByte('\n')
 
-		var errTrace []trace.Location
-		if t, ok := err.(stackTracer); ok {
-			errTrace = t.StackTrace()
-		}
 		firstErrTrace := true
-		for _, l := range errTrace {
+		for _, l := range StackTrace(err) {
 			if !filter(l) {
 				continue
 			}
