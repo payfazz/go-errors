@@ -34,3 +34,16 @@ func TestCheck(t *testing.T) {
 		t.Fatalf("should contain funcAA")
 	}
 }
+
+func TestAssert(t *testing.T) {
+	err := errors.Catch(func() error {
+		funcAA(func() {
+			errors.Assert(false)
+		})
+		return nil
+	})
+
+	if !haveTrace(errors.StackTrace(err), "funcAA") {
+		t.Fatalf("should contain funcAA")
+	}
+}

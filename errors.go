@@ -38,3 +38,10 @@ func Check(err error) {
 		panic(Trace(err))
 	}
 }
+
+// Assert will panic if fact is false
+func Assert(fact bool) {
+	if !fact {
+		panic(New("assertion failed"))
+	}
+}
