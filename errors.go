@@ -51,7 +51,12 @@ func Check(err error) {
 
 // Assert will panic if fact is false
 func Assert(fact bool) {
+	AssertFact(fact, "assertion failed")
+}
+
+// AssertFact will panic with message if fact is false
+func AssertFact(fact bool, message string) {
 	if !fact {
-		panic(New("assertion failed"))
+		panic(New(message))
 	}
 }
