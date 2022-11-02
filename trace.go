@@ -22,13 +22,58 @@ func (e *traced) Is(target error) bool { return Is(e.err, target) }
 //
 // will return same err if err already have stack trace
 //
-// use Is function to compare the returned error with others, because equality (==) operator will fail
+// use [Is] function to compare the returned error with others, because equality (==) operator will fail
 func Trace(err error) error {
 	if err == nil {
 		return nil
 	}
 
 	return doTrace(err)
+}
+
+// like [Trace] but suitable for multiple return
+func Trace2[A any](a A, err error) (A, error) {
+	if err == nil {
+		return a, nil
+	}
+
+	return a, doTrace(err)
+}
+
+// like [Trace] but suitable for multiple return
+func Trace3[A, B any](a A, b B, err error) (A, B, error) {
+	if err == nil {
+		return a, b, nil
+	}
+
+	return a, b, doTrace(err)
+}
+
+// like [Trace] but suitable for multiple return
+func Trace4[A, B, C any](a A, b B, c C, err error) (A, B, C, error) {
+	if err == nil {
+		return a, b, c, nil
+	}
+
+	return a, b, c, doTrace(err)
+}
+
+// like [Trace] but suitable for multiple return
+func Trace5[A, B, C, D any](a A, b B, c C, d D, err error) (A, B, C, D, error) {
+	if err == nil {
+		return a, b, c, d, nil
+	}
+
+	return a, b, c, d, doTrace(err)
+}
+
+// like [Trace] but suitable for multiple return
+func Trace6[A, B, C, D, E any](a A, b B, c C, d D, e E, err error) (A, B, C, D, E, error) {
+	if err == nil {
+		return a, b, c, d, e, nil
+	}
+
+	return a, b, c, d, e, doTrace(err)
 }
 
 // this function is separated from Trace,

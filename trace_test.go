@@ -101,3 +101,57 @@ func TestErrorsAs(t *testing.T) {
 		t.Errorf("invalid errors.As")
 	}
 }
+
+func TestTraceMultipleReturn(t *testing.T) {
+	a, err := errors.Trace2(10, nil)
+	if a != 10 || err != nil {
+		t.FailNow()
+	}
+
+	a, b, err := errors.Trace3(10, 20, nil)
+	if a != 10 || b != 20 || err != nil {
+		t.FailNow()
+	}
+
+	a, b, c, err := errors.Trace4(10, 20, 30, nil)
+	if a != 10 || b != 20 || c != 30 || err != nil {
+		t.FailNow()
+	}
+
+	a, b, c, d, err := errors.Trace5(10, 20, 30, 40, nil)
+	if a != 10 || b != 20 || c != 30 || d != 40 || err != nil {
+		t.FailNow()
+	}
+
+	a, b, c, d, e, err := errors.Trace6(10, 20, 30, 40, 50, nil)
+	if a != 10 || b != 20 || c != 30 || d != 40 || e != 50 || err != nil {
+		t.FailNow()
+	}
+
+	orierr := errors.New("orierr")
+
+	a, err = errors.Trace2(10, orierr)
+	if a != 10 || !errors.Is(err, orierr) {
+		t.FailNow()
+	}
+
+	a, b, err = errors.Trace3(10, 20, orierr)
+	if a != 10 || b != 20 || !errors.Is(err, orierr) {
+		t.FailNow()
+	}
+
+	a, b, c, err = errors.Trace4(10, 20, 30, orierr)
+	if a != 10 || b != 20 || c != 30 || !errors.Is(err, orierr) {
+		t.FailNow()
+	}
+
+	a, b, c, d, err = errors.Trace5(10, 20, 30, 40, orierr)
+	if a != 10 || b != 20 || c != 30 || d != 40 || !errors.Is(err, orierr) {
+		t.FailNow()
+	}
+
+	a, b, c, d, e, err = errors.Trace6(10, 20, 30, 40, 50, orierr)
+	if a != 10 || b != 20 || c != 30 || d != 40 || e != 50 || !errors.Is(err, orierr) {
+		t.FailNow()
+	}
+}
