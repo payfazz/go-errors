@@ -7,27 +7,37 @@ import (
 	"github.com/payfazz/go-errors/v2/trace"
 )
 
-// see [errors.As]
+// see [stdlib errors.As]
+//
+// [stdlib errors.As]: https://pkg.go.dev/errors/#As
 func As(err error, target any) bool {
 	return stderrors.As(err, target)
 }
 
-// see [errors.Is]
+// see [stdlib errors.Is]
+//
+// [stdlib errors.Is]: https://pkg.go.dev/errors/#Is
 func Is(err, target error) bool {
 	return stderrors.Is(err, target)
 }
 
-// see [errors.Unwrap]
+// see [stdlib errors.Unwrap]
+//
+// [stdlib errors.Unwrap]: https://pkg.go.dev/errors/#Unwrap
 func Unwrap(err error) error {
 	return stderrors.Unwrap(err)
 }
 
-// see [errors.New]
+// see [stdlib errors.New]
+//
+// [stdlib errors.New]: https://pkg.go.dev/errors/#New
 func New(text string) error {
 	return &traced{stderrors.New(text), trace.Get(1, traceDeep)}
 }
 
-// see [fmt.Errorf]
+// see [stdlib fmt.Errorf]
+//
+// [stdlib fmt.Errorf]: https://pkg.go.dev/fmt/#Errorf
 func Errorf(format string, a ...any) error {
 	return &traced{fmt.Errorf(format, a...), trace.Get(1, traceDeep)}
 }
