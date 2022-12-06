@@ -3,8 +3,6 @@ package errors
 import (
 	stderrors "errors"
 	"fmt"
-
-	"github.com/payfazz/go-errors/v2/trace"
 )
 
 // run f, if f panic or returned, that value will be returned by this function
@@ -17,20 +15,20 @@ func Catch(f func() error) (err error) {
 
 		recErr, ok := rec.(error)
 		if !ok {
-			err = &traced{stderrors.New(fmt.Sprint(rec)), trace.Get(1, traceDeep)}
+			err = newTraced(stderrors.New(fmt.Sprint(rec)))
 			return
 		}
 
 		cur := recErr
 		for cur != nil {
-			if _, ok := cur.(*traced); ok {
+			if _, ok := cur.(hastrace); ok {
 				err = recErr
 				return
 			}
 			cur = stderrors.Unwrap(cur)
 		}
 
-		err = &traced{recErr, trace.Get(1, traceDeep)}
+		err = newTraced(recErr)
 	}()
 
 	return f()
