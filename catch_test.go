@@ -78,16 +78,6 @@ func TestCatchMultipleReturn(t *testing.T) {
 		t.FailNow()
 	}
 
-	a, b, c, d, err := errors.Catch5(func() (int, int, int, int, error) { return 10, 20, 30, 40, nil })
-	if a != 10 || b != 20 || c != 30 || d != 40 || err != nil {
-		t.FailNow()
-	}
-
-	a, b, c, d, e, err := errors.Catch6(func() (int, int, int, int, int, error) { return 10, 20, 30, 40, 50, nil })
-	if a != 10 || b != 20 || c != 30 || d != 40 || e != 50 || err != nil {
-		t.FailNow()
-	}
-
 	orierr := errors.New("orierr")
 
 	a, err = errors.Catch2(func() (int, error) { return 10, orierr })
@@ -102,16 +92,6 @@ func TestCatchMultipleReturn(t *testing.T) {
 
 	a, b, c, err = errors.Catch4(func() (int, int, int, error) { return 10, 20, 30, orierr })
 	if a != 10 || b != 20 || c != 30 || !errors.Is(err, orierr) {
-		t.FailNow()
-	}
-
-	a, b, c, d, err = errors.Catch5(func() (int, int, int, int, error) { return 10, 20, 30, 40, orierr })
-	if a != 10 || b != 20 || c != 30 || d != 40 || !errors.Is(err, orierr) {
-		t.FailNow()
-	}
-
-	a, b, c, d, e, err = errors.Catch6(func() (int, int, int, int, int, error) { return 10, 20, 30, 40, 50, orierr })
-	if a != 10 || b != 20 || c != 30 || d != 40 || e != 50 || !errors.Is(err, orierr) {
 		t.FailNow()
 	}
 }

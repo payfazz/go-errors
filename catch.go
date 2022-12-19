@@ -74,34 +74,3 @@ func Catch4[A, B, C any](f func() (A, B, C, error)) (A, B, C, error) {
 		return err
 	})
 }
-
-// like [Catch] but suitable for multiple return
-func Catch5[A, B, C, D any](f func() (A, B, C, D, error)) (A, B, C, D, error) {
-	var (
-		a A
-		b B
-		c C
-		d D
-	)
-	return a, b, c, d, Catch(func() error {
-		var err error
-		a, b, c, d, err = f()
-		return err
-	})
-}
-
-// like [Catch] but suitable for multiple return
-func Catch6[A, B, C, D, E any](f func() (A, B, C, D, E, error)) (A, B, C, D, E, error) {
-	var (
-		a A
-		b B
-		c C
-		d D
-		e E
-	)
-	return a, b, c, d, e, Catch(func() error {
-		var err error
-		a, b, c, d, e, err = f()
-		return err
-	})
-}

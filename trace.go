@@ -58,24 +58,6 @@ func Trace4[A, B, C any](a A, b B, c C, err error) (A, B, C, error) {
 	return a, b, c, doTrace(err)
 }
 
-// like [Trace] but suitable for multiple return
-func Trace5[A, B, C, D any](a A, b B, c C, d D, err error) (A, B, C, D, error) {
-	if err == nil {
-		return a, b, c, d, nil
-	}
-
-	return a, b, c, d, doTrace(err)
-}
-
-// like [Trace] but suitable for multiple return
-func Trace6[A, B, C, D, E any](a A, b B, c C, d D, e E, err error) (A, B, C, D, E, error) {
-	if err == nil {
-		return a, b, c, d, e, nil
-	}
-
-	return a, b, c, d, e, doTrace(err)
-}
-
 // this function is separated from Trace,
 // to make sure that Trace function is simple enough and get inlined
 func doTrace(err error) error {
