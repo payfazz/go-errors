@@ -3,8 +3,6 @@ package errors
 import (
 	stderrors "errors"
 	"fmt"
-
-	"github.com/payfazz/go-errors/v2/trace"
 )
 
 // see [stdlib errors.As]
@@ -32,14 +30,14 @@ func Unwrap(err error) error {
 //
 // [stdlib errors.New]: https://pkg.go.dev/errors/#New
 func New(text string) error {
-	return &traced{stderrors.New(text), trace.Get(1, traceDeep)}
+	return newTraced(stderrors.New(text))
 }
 
 // see [stdlib fmt.Errorf]
 //
 // [stdlib fmt.Errorf]: https://pkg.go.dev/fmt/#Errorf
 func Errorf(format string, a ...any) error {
-	return &traced{fmt.Errorf(format, a...), trace.Get(1, traceDeep)}
+	return newTraced(fmt.Errorf(format, a...))
 }
 
 // will panic if err is not nil

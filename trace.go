@@ -8,15 +8,18 @@ import (
 
 const traceDeep = 150
 
-type traced struct {
-	err   error
-	trace []trace.Location
+type tracedErr struct {
+	err  error
+	locs []trace.Location
 }
 
-func (e *traced) Error() string        { return e.err.Error() }
-func (e *traced) Unwrap() error        { return Unwrap(e.err) }
-func (e *traced) As(target any) bool   { return As(e.err, target) }
-func (e *traced) Is(target error) bool { return Is(e.err, target) }
+func (e *tracedErr) Error() string           { return e.err.Error() }
+func (e *tracedErr) Unwrap() error           { return Unwrap(e.err) }
+func (e *tracedErr) As(target any) bool      { return As(e.err, target) }
+func (e *tracedErr) Is(target error) bool    { return Is(e.err, target) }
+func (e *tracedErr) trace() []trace.Location { return e.locs }
+
+type hastrace interface{ trace() []trace.Location }
 
 // Trace will return new error that have stack trace
 //
@@ -63,13 +66,13 @@ func Trace4[A, B, C any](a A, b B, c C, err error) (A, B, C, error) {
 func doTrace(err error) error {
 	cur := err
 	for cur != nil {
-		if _, ok := cur.(*traced); ok {
+		if _, ok := cur.(hastrace); ok {
 			return err
 		}
 		cur = stderrors.Unwrap(cur)
 	}
 
-	return &traced{err, trace.Get(1, traceDeep)}
+	return newTraced(err)
 }
 
 // Get stack trace of err
@@ -77,8 +80,8 @@ func doTrace(err error) error {
 // return nil if err doesn't have stack trace
 func StackTrace(err error) []trace.Location {
 	for err != nil {
-		if t, ok := err.(*traced); ok {
-			return t.trace
+		if t, ok := err.(hastrace); ok {
+			return t.trace()
 		}
 		err = stderrors.Unwrap(err)
 	}
